@@ -55,9 +55,10 @@ This validation verifies everything directly from GitHub's live API:
 **Issue Detected**: Default branch is `release/v0.1.0` instead of `main`
 
 **Impact**: 
-- Workflows may not trigger correctly on `main` branch
-- Semantic-release may target wrong branch
-- CI/CD may not run on expected branch
+- Workflows configured to trigger on `main` may not run (default branch is `release/v0.1.0`)
+- Semantic-release workflow triggers on `main` but default branch is `release/v0.1.0`
+- CI/CD workflows may not run as expected
+- Recent workflow runs show failures (likely due to branch mismatch)
 
 **Fix Required**: Change default branch to `main`
 
@@ -91,15 +92,17 @@ This validation verifies everything directly from GitHub's live API:
 
 ### Workflow Files on GitHub
 
-**Verified Workflows**:
-- ✅ `.github/workflows/ci.yml` - Exists on GitHub
-- ✅ `.github/workflows/semantic-release.yml` - Exists on GitHub
-- ⚠️ `.github/workflows/codeql.yml` - Exists in PR branch, not yet on main
-- ✅ `.github/workflows/docker-publish.yml` - Exists on GitHub
-- ✅ `.github/workflows/publish-pypi.yml` - Exists on GitHub
-- ✅ `.github/workflows/nightly.yml` - Exists on GitHub
+**Note**: Default branch is `release/v0.1.0`, so workflows are checked on that branch.
 
-**Status**: ✅ **VERIFIED** - All workflow files exist (CodeQL pending merge)
+**Verified Workflows**:
+- ✅ `.github/workflows/ci.yml` - Exists on default branch (`release/v0.1.0`)
+- ✅ `.github/workflows/semantic-release.yml` - Exists on default branch (`release/v0.1.0`)
+- ⚠️ `.github/workflows/codeql.yml` - Exists in PR branch, not yet on default branch
+- ⚠️ `.github/workflows/docker-publish.yml` - May not exist on default branch
+- ⚠️ `.github/workflows/publish-pypi.yml` - May not exist on default branch
+- ⚠️ `.github/workflows/nightly.yml` - May not exist on default branch
+
+**Status**: ⚠️ **PARTIAL** - Core workflows exist, additional workflows pending PR merge
 
 ### GitHub Actions Workflows List
 
