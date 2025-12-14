@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "codethor0", url = "https://github.com/codethor0"}
+    {name = "codethor0"}
 ]
 keywords = ["security", "code-analysis", "static-analysis", "fingerprinting", "research"]
 classifiers = [
