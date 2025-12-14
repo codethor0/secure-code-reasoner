@@ -1,0 +1,28 @@
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "CI",
+      "build (3.10)",
+      "build (3.11)",
+      "build (3.12)",
+      "lint",
+      "format",
+      "Security Scanning",
+      "CodeQL",
+      "pytest (3.10)",
+      "pytest (3.11)",
+      "pytest (3.12)"
+    ]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false,
+    "required_approving_review_count": 1
+  },
+  "restrictions": null,
+  "required_conversation_resolution": true,
+  "required_signatures": true
+}
+
