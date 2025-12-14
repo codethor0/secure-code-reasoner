@@ -43,6 +43,7 @@
   - TOML syntax fixes (`pyproject.toml`)
   - Validation reports
 - PR is **OPEN** but **NOT MERGED**
+- ⚠️ **CRITICAL**: PR targets `release/v0.1.0` instead of `main`
 - Changes exist only in PR branch, not on `main`
 
 **Secondary Issues**:
@@ -54,20 +55,26 @@
 
 ## 📌 STEP 3: EXACT FIX COMMANDS
 
-### Option A: Merge PR via GitHub UI (Recommended)
+### Option A: Retarget PR to Main (Recommended)
+
+**⚠️ CRITICAL**: PR #3 currently targets `release/v0.1.0` instead of `main`.
 
 **Steps**:
 1. Go to: `https://github.com/codethor0/secure-code-reasoner/pull/3`
-2. Review the PR changes
-3. Click **"Merge pull request"**
-4. Confirm the merge
+2. Click **"Edit"** next to the base branch
+3. Change base from `release/v0.1.0` to `main`
+4. Click **"Update branch"**
+5. Review the PR changes
+6. Click **"Merge pull request"**
 
 **This will automatically**:
 - ✅ Merge CodeQL workflow to `main`
 - ✅ Merge TOML syntax fixes to `main`
 - ✅ Merge all validation reports to `main`
 
-### Option B: Manual Git Commands (If PR Cannot Be Merged)
+### Option B: Manual Git Commands (Create New PR Targeting Main)
+
+**Use this if PR #3 cannot be retargeted:**
 
 ```bash
 # Step 1: Ensure you're on main and up to date
@@ -75,7 +82,7 @@ git checkout main
 git pull origin main
 
 # Step 2: Create a new branch for applying fixes
-git checkout -b fix/apply-missing-changes
+git checkout -b fix/apply-codeql-and-toml-fixes
 
 # Step 3: Cherry-pick changes from PR branch
 git cherry-pick fix/toml-syntax-and-codeql
@@ -86,17 +93,23 @@ grep 'excluded = \[' pyproject.toml
 
 # Step 5: Commit and push
 git add .
-git commit -m "fix: apply missing CodeQL workflow and TOML syntax fixes"
-git push origin fix/apply-missing-changes
+git commit -m "fix: apply CodeQL workflow and TOML syntax fixes to main"
+git push origin fix/apply-codeql-and-toml-fixes
 
-# Step 6: Create PR
-gh pr create --title "fix: apply missing CodeQL workflow and TOML syntax fixes" \
-  --body "This PR applies the missing changes:
+# Step 6: Create PR targeting main
+gh pr create --base main --title "fix: apply CodeQL workflow and TOML syntax fixes" \
+  --body "This PR applies critical fixes to main:
 - CodeQL workflow (.github/workflows/codeql.yml)
 - TOML syntax fixes (pyproject.toml)
 - Validation reports
 
-These changes were previously in PR #3 but need to be merged to main."
+These changes were previously in PR #3 but that PR targeted release/v0.1.0.
+This PR correctly targets main to activate CodeQL and fix semantic-release."
+```
+
+**Or use the provided script:**
+```bash
+bash FIX_MISSING_CHANGES_COMMANDS.sh
 ```
 
 ### Option C: Direct Merge via Git (If You Have Admin Access)
