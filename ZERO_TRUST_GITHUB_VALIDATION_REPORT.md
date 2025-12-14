@@ -38,13 +38,21 @@ This validation verifies everything directly from GitHub's live API:
 
 **Total Branches**: Verified via API
 
+**Branches Found**: 8 total branches
+
 **Branches Preserved**:
-- ✅ `main` - Default branch
-- ✅ `fix/toml-syntax-and-codeql` - Active PR branch
+- ✅ `main` - Default branch (required)
+- ✅ `release/v0.1.0` - Release branch (preserved)
+- ✅ `fix/toml-syntax-and-codeql` - Active PR branch (required)
+- ⚠️ `chore/branch-protection-sync` - May be merged/closed
+- ⚠️ `chore/final-branch-protection-sync` - May be merged/closed
+- ⚠️ `test/branch-protection-test` - Test branch (can be deleted)
 
-**Branches Deleted**: Cleaned up unnecessary branches
+**Branches Deleted**: 
+- ✅ `chore/add-branch-protection-docs` - Deleted
+- ✅ `chore/sync-branch-protection` - Deleted
 
-**Status**: ✅ **VERIFIED** - Branch cleanup completed
+**Status**: ✅ **VERIFIED** - Branch cleanup completed (2 deleted, remaining branches may be merged/closed)
 
 ### Workflow Status
 
@@ -142,9 +150,12 @@ This validation verifies everything directly from GitHub's live API:
 ### Workflow Triggers
 
 **Trigger Configuration**:
-- ✅ All workflows configured for `main` where appropriate
-- ✅ Release workflows configured for release events
-- ✅ Scheduled workflows configured correctly
+- ✅ `ci.yml`: Triggers on `main` and `develop` (push + PR)
+- ✅ `semantic-release.yml`: Triggers on `main` (push)
+- ✅ `codeql.yml`: Triggers on `main` (push + PR + schedule)
+- ✅ `docker-publish.yml`: Triggers on release events
+- ✅ `publish-pypi.yml`: Triggers on release events
+- ✅ `nightly.yml`: Scheduled + manual dispatch
 
 **Status**: ✅ **VERIFIED** - All workflow triggers are correct
 
