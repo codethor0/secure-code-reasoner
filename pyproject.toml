@@ -37,7 +37,14 @@ dev = [
     "black==23.12.1",
     "mypy==1.7.1",
     "ruff==0.1.9",
+    "semantic-release>=8.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/codethor0/secure-code-reasoner"
+Documentation = "https://github.com/codethor0/secure-code-reasoner#readme"
+Repository = "https://github.com/codethor0/secure-code-reasoner"
+Issues = "https://github.com/codethor0/secure-code-reasoner/issues"
 
 [project.scripts]
 scr = "secure_code_reasoner.cli.main:cli"
@@ -72,3 +79,67 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["E501"]
+
+[tool.semantic_release]
+version_variable = "pyproject.toml:project.version"
+build_command = "pip install build && python -m build"
+dist_path = "dist"
+upload_to_vcs_release = true
+hvcs = "github"
+commit_author = "codethor0 <codethor0@users.noreply.github.com>"
+version_toml = ["pyproject.toml:project.version"]
+
+[tool.semantic_release.changelog]
+enabled = true
+changelog_file = "CHANGELOG.md"
+
+[tool.semantic_release.changelog.environment]
+blocked_labels = ["skip-changelog"]
+
+[tool.semantic_release.changelog.environment.opt_in_labels]
+- "changelog"
+
+[tool.semantic_release.changelog.environment.opt_out_labels]
+- "skip-changelog"
+
+[tool.semantic_release.changelog.excluded]
+- "build"
+- "chore"
+- "ci"
+- "docs"
+- "refactor"
+- "style"
+- "test"
+
+[tool.semantic_release.changelog.sections]
+- type: "feat"
+  section: "Features"
+- type: "fix"
+  section: "Bug Fixes"
+- type: "perf"
+  section: "Performance Improvements"
+- type: "revert"
+  section: "Reverts"
+- type: "docs"
+  section: "Documentation"
+- type: "style"
+  section: "Code Style"
+- type: "chore"
+  section: "Chores"
+- type: "refactor"
+  section: "Code Refactoring"
+- type: "test"
+  section: "Tests"
+- type: "build"
+  section: "Build System"
+- type: "ci"
+  section: "Continuous Integration"
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
+
+[tool.semantic_release.branches.pre]
+match = "(pre|alpha|beta|rc)[./-]?\\d*"
+prerelease_token = "rc"
+prerelease = true
