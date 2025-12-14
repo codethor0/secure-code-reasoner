@@ -114,6 +114,11 @@ class FileArtifact(CodeArtifact):
             raise ValueError("byte_size must be >= 0")
         super().__post_init__()
 
+    def __hash__(self) -> int:
+        """Make file artifact hashable including file-specific fields."""
+        base_hash = super().__hash__()
+        return hash((base_hash, self.language, self.line_count, self.byte_size))
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert file artifact to dictionary."""
         base_dict = super().to_dict()
@@ -139,6 +144,11 @@ class ClassArtifact(CodeArtifact):
         super().__post_init__()
         if self.artifact_type != CodeArtifactType.CLASS:
             raise ValueError("ClassArtifact must have artifact_type CLASS")
+
+    def __hash__(self) -> int:
+        """Make class artifact hashable including class-specific fields."""
+        base_hash = super().__hash__()
+        return hash((base_hash, self.methods, self.base_classes))
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert class artifact to dictionary."""
@@ -166,6 +176,11 @@ class FunctionArtifact(CodeArtifact):
         super().__post_init__()
         if self.artifact_type != CodeArtifactType.FUNCTION:
             raise ValueError("FunctionArtifact must have artifact_type FUNCTION")
+
+    def __hash__(self) -> int:
+        """Make function artifact hashable including function-specific fields."""
+        base_hash = super().__hash__()
+        return hash((base_hash, self.parameters, self.return_type, self.is_async, self.decorators))
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert function artifact to dictionary."""

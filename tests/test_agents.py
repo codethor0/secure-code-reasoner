@@ -65,6 +65,7 @@ def test_code_analyst_agent(sample_fingerprint) -> None:
     report = agent.analyze(sample_fingerprint)
 
     assert report.agent_name == "CodeAnalyst"
+    # Sample has large class and many parameters, so should have findings
     assert len(report.findings) > 0
     assert report.summary
 

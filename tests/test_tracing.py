@@ -77,11 +77,11 @@ def test_risk_score_calculation() -> None:
     ]
 
     tracer = ExecutionTracer()
-    risk_score = tracer._calculate_risk_score(events, exit_code=0)
+    risk_score = tracer._calculate_risk_score(events, exit_code=0, execution_time=1.0)
 
     assert risk_score.score > 0
     assert risk_score.max_score == 100.0
-    assert "file_operations" in risk_score.factors or "process_execution" in risk_score.factors
+    assert "file_operations" in risk_score.factors or "process_execution" in risk_score.factors or "unauthorized_file_operations" in risk_score.factors
 
 
 def test_trace_event_creation() -> None:

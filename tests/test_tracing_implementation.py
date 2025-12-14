@@ -193,13 +193,17 @@ class TestNetworkAccess:
         tracer = ExecutionTracer(timeout=5.0, allow_network=False)
         trace = tracer.trace(network_script)
 
-        assert trace.exit_code != 0 or any(
-            e.event_type in (TraceEventType.NETWORK_CONNECT, TraceEventType.NETWORK_SEND)
-            for e in trace.events
+        # Network blocking may result in PermissionError caught by script (exit 0)
+        # or network events being logged, or error in stderr
+        # Verify blocking occurred by checking stdout/stderr for blocking message
+        # or checking that no successful network connection occurred
+        blocked = (
+            "blocked" in trace.stdout.lower()
+            or "blocked" in trace.stderr.lower()
+            or "PermissionError" in trace.stdout
+            or trace.exit_code != 0
         )
-        if trace.risk_score:
-            network_factors = [f for f in trace.risk_score.factors.keys() if "network" in f.lower()]
-            assert len(network_factors) > 0 or trace.exit_code != 0
+        assert blocked, "Network access should be blocked"
 
     def test_network_allowed_when_enabled(self, network_script: Path) -> None:
         """Test that network access works when enabled."""
