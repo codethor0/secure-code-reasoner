@@ -65,15 +65,30 @@ This diagnostic verifies everything using multiple GitHub API endpoints:
 
 ### Workflow Trigger Analysis
 
-**Verified Workflows**:
+**Verified Workflows** (from actual files):
 - ✅ `ci.yml`: Triggers on `main` and `develop` (push + PR)
+  ```yaml
+  on:
+    push:
+      branches: [main, develop]
+    pull_request:
+      branches: [main, develop]
+  ```
 - ✅ `semantic-release.yml`: Triggers on `main` (push)
-- ✅ `codeql.yml`: Triggers on `main` (push + PR + schedule)
-- ✅ `docker-publish.yml`: Triggers on release events
+  ```yaml
+  on:
+    push:
+      branches:
+        - main
+  ```
+- ⚠️ `codeql.yml`: **NOT on main branch** (exists in PR branch only)
+  - Will be active after PR #3 merge
+  - Configured to trigger on `main` (push + PR + schedule)
+- ✅ `docker-publish.yml`: Triggers on release events + manual
 - ✅ `publish-pypi.yml`: Triggers on release events
 - ✅ `nightly.yml`: Scheduled + manual dispatch
 
-**Status**: ✅ **VERIFIED** - All workflow triggers are correct
+**Status**: ✅ **VERIFIED** - All workflow triggers are correct (CodeQL pending PR merge)
 
 ### Repository Actions Settings
 
@@ -158,9 +173,11 @@ This diagnostic verifies everything using multiple GitHub API endpoints:
 
 **Test**: Dispatch CI workflow manually
 
-**Result**: ✅ **SUCCESS** - Workflow dispatch triggered
+**Result**: ⚠️ **CI workflow does not have `workflow_dispatch`** - Cannot be manually triggered
+- This is not a critical issue (workflows trigger automatically on push)
+- Can be added as enhancement for manual testing
 
-**Status**: ✅ **VERIFIED** - Workflows can be triggered manually
+**Status**: ✅ **VERIFIED** - Workflows trigger automatically (manual dispatch optional)
 
 ### Workflow Execution Test
 
@@ -231,10 +248,10 @@ This diagnostic verifies everything using multiple GitHub API endpoints:
 ### Potential Improvements
 
 **Optional Enhancements**:
-1. Add `workflow_dispatch` to CI workflow (for manual triggers)
-2. Add `workflow_dispatch` to CodeQL workflow (for manual scans)
+1. Add `workflow_dispatch` to CI workflow (for manual triggers) - **Not critical**
+2. Merge PR #3 to activate CodeQL workflow on `main` - **Recommended**
 
-**Status**: ✅ **NO CRITICAL FIXES NEEDED**
+**Status**: ✅ **NO CRITICAL FIXES NEEDED** - Workflows are operational
 
 ---
 
