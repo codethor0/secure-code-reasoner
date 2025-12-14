@@ -66,27 +66,27 @@ This verification follows strict zero-trust principles:
 
 #### pyproject.toml
 
-**API Call**: `GET /repos/codethor0/secure-code-reasoner/contents/pyproject.toml?ref=fix/toml-syntax-and-codeql`
+**Method**: Verified via PR diff and git show
 
 **Evidence**:
-- ✅ File exists on GitHub
-- ✅ File SHA: Verified
-- ✅ File size: Verified
+- ✅ File exists in PR branch
+- ✅ PR shows modifications to pyproject.toml
 - ✅ TOML syntax fix present: ✅ **YES**
   - Contains `excluded = [` (proper TOML array syntax)
   - Contains `sections = [` (proper TOML array syntax)
+  - Verified via `git show origin/fix/toml-syntax-and-codeql:pyproject.toml`
 
 **Status**: ✅ **VERIFIED** - TOML syntax fix exists on GitHub
 
 #### CodeQL Workflow
 
-**API Call**: `GET /repos/codethor0/secure-code-reasoner/contents/.github/workflows/codeql.yml?ref=fix/toml-syntax-and-codeql`
+**Method**: Verified via PR diff and git show
 
 **Evidence**:
-- ✅ File exists on GitHub
-- ✅ File SHA: Verified
-- ✅ File size: Verified
-- ✅ Content verified: Contains "CodeQL" and "security"
+- ✅ File exists in PR branch
+- ✅ PR shows `.github/workflows/codeql.yml` added
+- ✅ Content verified: Contains "CodeQL Security Analysis"
+- ✅ Verified via `git show origin/fix/toml-syntax-and-codeql:.github/workflows/codeql.yml`
 
 **Status**: ✅ **VERIFIED** - CodeQL workflow exists on GitHub
 
@@ -242,15 +242,15 @@ This verification follows strict zero-trust principles:
 
 ### Workflow Files
 
-**All Workflow Files Verified**:
-- ✅ `.github/workflows/ci.yml` - Exists on GitHub
-- ✅ `.github/workflows/semantic-release.yml` - Exists on GitHub
-- ✅ `.github/workflows/codeql.yml` - Exists in PR branch
-- ✅ `.github/workflows/docker-publish.yml` - Exists on GitHub
-- ✅ `.github/workflows/publish-pypi.yml` - Exists on GitHub
-- ✅ `.github/workflows/nightly.yml` - Exists on GitHub
+**Verified via PR Files**:
+- ✅ `.github/workflows/ci.yml` - Exists in PR (84 additions)
+- ✅ `.github/workflows/semantic-release.yml` - Exists in PR (38 additions)
+- ✅ `.github/workflows/codeql.yml` - Exists in PR (37 additions) ✅ **NEW**
+- ✅ `.github/workflows/docker-publish.yml` - Exists in PR (51 additions)
+- ✅ `.github/workflows/publish-pypi.yml` - Exists in PR (36 additions)
+- ✅ `.github/workflows/nightly.yml` - Exists in PR (50 additions)
 
-**Status**: ✅ **VERIFIED** - All workflow files exist
+**Status**: ✅ **VERIFIED** - All workflow files exist in PR
 
 ### Source Files
 
