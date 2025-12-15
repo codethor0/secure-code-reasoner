@@ -86,7 +86,7 @@ def install_trace_hooks() -> None:
                 trace_network_operation("network_connect", str(addr), port)
                 return original_connect(address)
 
-            sock.connect = traced_connect  # type: ignore[method-assign]
+            sock.connect = traced_connect  # type: ignore[method-assign,assignment]
             return sock
         return None
 
