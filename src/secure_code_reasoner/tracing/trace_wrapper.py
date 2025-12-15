@@ -86,12 +86,12 @@ def install_trace_hooks() -> None:
                 trace_network_operation("network_connect", str(addr), port)
                 return original_connect(address)
 
-            sock.connect = traced_connect
+            sock.connect = traced_connect  # type: ignore[method-assign]
             return sock
         return None
 
     builtins = __import__("builtins")
-    builtins.open = traced_open  # type: ignore[assignment]
+    builtins.open = traced_open  # type: ignore[attr-defined,assignment]
 
     if original_subprocess_run:
         import subprocess
