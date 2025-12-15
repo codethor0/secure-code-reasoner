@@ -390,12 +390,12 @@ class Fingerprinter:
                 edges[func_id].add(file_id)
 
             class_name = func_artifact.metadata.get("class")
-            if class_name:
-                class_id: str | None = self._find_class_id(str(class_name), class_artifacts, func_artifact.path) if isinstance(class_name, str) else None
-                if class_id:
+            if class_name and isinstance(class_name, str):
+                func_class_id = self._find_class_id(class_name, class_artifacts, func_artifact.path)
+                if func_class_id:
                     if func_id not in edges:
                         edges[func_id] = set()
-                    edges[func_id].add(class_id)
+                    edges[func_id].add(func_class_id)
 
         normalized_edges: dict[str, frozenset[str]] = {
             source: frozenset(targets) for source, targets in sorted(edges.items())
