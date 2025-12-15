@@ -37,7 +37,7 @@ class PythonASTVisitor(ast.NodeVisitor):
         base_classes = [self._get_name(base) for base in node.bases]
         methods: set[str] = set()
         for item in node.body:
-            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef):
                 methods.add(item.name)
 
         class_segment = ClassArtifact(

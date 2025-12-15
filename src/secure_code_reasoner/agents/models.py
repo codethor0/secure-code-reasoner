@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class Severity(str, Enum):
@@ -35,10 +35,10 @@ class AgentFinding:
     severity: Severity
     title: str
     description: str
-    file_path: Optional[Path] = None
-    line_number: Optional[int] = None
-    code_snippet: Optional[str] = None
-    recommendation: Optional[str] = None
+    file_path: Path | None = None
+    line_number: int | None = None
+    code_snippet: str | None = None
+    recommendation: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -170,7 +170,7 @@ class AgentReport:
     agent_name: str
     findings: frozenset[AgentFinding] = field(default_factory=frozenset)
     patch_suggestions: frozenset[PatchSuggestion] = field(default_factory=frozenset)
-    summary: Optional[str] = None
+    summary: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:

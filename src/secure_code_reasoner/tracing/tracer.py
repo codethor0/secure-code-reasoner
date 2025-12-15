@@ -6,7 +6,6 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 from secure_code_reasoner.exceptions import SandboxError, TracingError
 from secure_code_reasoner.tracing.models import (
@@ -43,7 +42,7 @@ class ExecutionTracer:
         self.allow_network = allow_network
         self.allow_file_write = allow_file_write
 
-    def trace(self, script_path: Path, args: Optional[list[str]] = None) -> ExecutionTrace:
+    def trace(self, script_path: Path, args: list[str] | None = None) -> ExecutionTrace:
         """Trace execution of a script."""
         script_path = Path(script_path).resolve()
         if not script_path.exists():
@@ -55,7 +54,7 @@ class ExecutionTracer:
 
         start_time = time.time()
         events: list[TraceEvent] = []
-        exit_code: Optional[int] = None
+        exit_code: int | None = None
         stdout = ""
         stderr = ""
 
@@ -193,15 +192,15 @@ with open(r'{script_path}', 'r') as f:
 
         return events
 
-    def _create_trace_event(self, event_type: TraceEventType, metadata_str: str) -> Optional[TraceEvent]:
+    def _create_trace_event(self, event_type: TraceEventType, metadata_str: str) -> TraceEvent | None:
         """Create trace event from parsed data."""
         metadata: dict = {}
-        file_path: Optional[Path] = None
-        process_id: Optional[int] = None
-        network_address: Optional[str] = None
-        network_port: Optional[int] = None
-        command: Optional[str] = None
-        module_name: Optional[str] = None
+        file_path: Path | None = None
+        process_id: int | None = None
+        network_address: str | None = None
+        network_port: int | None = None
+        command: str | None = None
+        module_name: str | None = None
 
         if metadata_str:
             try:
@@ -242,7 +241,7 @@ with open(r'{script_path}', 'r') as f:
             metadata=metadata,
         )
 
-    def _calculate_risk_score(self, events: list[TraceEvent], exit_code: Optional[int], execution_time: float) -> RiskScore:
+    def _calculate_risk_score(self, events: list[TraceEvent], exit_code: int | None, execution_time: float) -> RiskScore:
         """Calculate risk score based on trace events using deterministic rules."""
         score = 0.0
         factors: dict[str, float] = {}

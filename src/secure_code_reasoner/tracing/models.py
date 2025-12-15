@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class TraceEventType(str, Enum):
@@ -26,12 +26,12 @@ class TraceEvent:
 
     event_type: TraceEventType
     timestamp: float
-    file_path: Optional[Path] = None
-    process_id: Optional[int] = None
-    network_address: Optional[str] = None
-    network_port: Optional[int] = None
-    command: Optional[str] = None
-    module_name: Optional[str] = None
+    file_path: Path | None = None
+    process_id: int | None = None
+    network_address: str | None = None
+    network_port: int | None = None
+    command: str | None = None
+    module_name: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -130,9 +130,9 @@ class ExecutionTrace:
 
     script_path: Path
     events: frozenset[TraceEvent] = field(default_factory=frozenset)
-    exit_code: Optional[int] = None
+    exit_code: int | None = None
     execution_time: float = 0.0
-    risk_score: Optional[RiskScore] = None
+    risk_score: RiskScore | None = None
     stdout: str = ""
     stderr: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)

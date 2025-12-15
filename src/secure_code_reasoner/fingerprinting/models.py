@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 def _ensure_hashable(cls: type) -> type:
@@ -100,7 +100,7 @@ class CodeArtifact:
 class FileArtifact(CodeArtifact):
     """Represents a file-level code artifact."""
 
-    language: Optional[str] = None
+    language: str | None = None
     line_count: int = 0
     byte_size: int = 0
 
@@ -167,7 +167,7 @@ class FunctionArtifact(CodeArtifact):
     """Represents a function-level code artifact."""
 
     parameters: frozenset[str] = field(default_factory=frozenset)
-    return_type: Optional[str] = None
+    return_type: str | None = None
     is_async: bool = False
     decorators: frozenset[str] = field(default_factory=frozenset)
 

@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from secure_code_reasoner.exceptions import ReportingError
 from secure_code_reasoner.reporting.formatter import Formatter
@@ -17,21 +17,21 @@ class Reporter:
         """Initialize reporter with formatter."""
         self.formatter = formatter
 
-    def report_fingerprint(self, fingerprint: Any, output_path: Optional[Path] = None) -> str:
+    def report_fingerprint(self, fingerprint: Any, output_path: Path | None = None) -> str:
         """Generate fingerprint report."""
         report = self.formatter.format_fingerprint(fingerprint)
         if output_path:
             self._write_report(output_path, report)
         return report
 
-    def report_agent_findings(self, report: Any, output_path: Optional[Path] = None) -> str:
+    def report_agent_findings(self, report: Any, output_path: Path | None = None) -> str:
         """Generate agent report."""
         report_text = self.formatter.format_agent_report(report)
         if output_path:
             self._write_report(output_path, report_text)
         return report_text
 
-    def report_trace(self, trace: Any, output_path: Optional[Path] = None) -> str:
+    def report_trace(self, trace: Any, output_path: Path | None = None) -> str:
         """Generate trace report."""
         report = self.formatter.format_trace(trace)
         if output_path:

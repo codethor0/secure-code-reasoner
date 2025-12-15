@@ -177,7 +177,7 @@ class TestFileProcessing:
         fingerprinter = Fingerprinter(repo)
         artifacts = fingerprinter._process_file(file_path)
         assert len(artifacts) >= 2
-        file_artifact = next(a for a in artifacts if isinstance(a, FileArtifact))
+        next(a for a in artifacts if isinstance(a, FileArtifact))
         class_artifact = next(a for a in artifacts if isinstance(a, ClassArtifact))
         assert class_artifact.name == "TestClass"
         assert "method" in class_artifact.methods

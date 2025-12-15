@@ -55,7 +55,7 @@ def install_trace_hooks() -> None:
         pass
 
     def traced_open(file: Any, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
-        file_path = Path(file) if isinstance(file, (str, Path)) else None
+        file_path = Path(file) if isinstance(file, str | Path) else None
         if file_path:
             if "w" in mode or "a" in mode or "x" in mode:
                 if os.environ.get("SCR_NO_FILE_WRITE") == "1":
