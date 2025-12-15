@@ -99,7 +99,7 @@ def install_trace_hooks() -> None:
 
     if original_socket_create:
         import socket
-        socket.socket = traced_socket_create  # type: ignore[assignment]
+        socket.socket = traced_socket_create  # type: ignore[assignment,misc]
 
 
 if __name__ == "__main__":
