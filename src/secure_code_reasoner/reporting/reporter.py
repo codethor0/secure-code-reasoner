@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from secure_code_reasoner.exceptions import ReportingError
 from secure_code_reasoner.reporting.formatter import Formatter
