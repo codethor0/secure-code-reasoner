@@ -6,12 +6,12 @@ from pathlib import Path
 from typing import Any, Optional
 
 
-def _ensure_hashable(cls):
+def _ensure_hashable(cls: type) -> type:
     """Class decorator to ensure __hash__ is not None for frozen dataclasses with dict fields."""
     if cls.__hash__ is None:
         original_hash = getattr(cls, '__hash__', None)
         if original_hash is None:
-            def __hash__(self):
+            def __hash__(self: Any) -> int:
                 metadata_hash = getattr(self, "_metadata_hash", ())
                 return hash((self.artifact_type, self.name, self.path, self.start_line, self.end_line, self.risk_signals, metadata_hash))
             cls.__hash__ = __hash__

@@ -11,6 +11,6 @@ class Agent(ABC):
         self.name = name
 
     @abstractmethod
-    def analyze(self, fingerprint):
+    def analyze(self, fingerprint: Any) -> Any:
         """Analyze fingerprint and return report."""
         pass

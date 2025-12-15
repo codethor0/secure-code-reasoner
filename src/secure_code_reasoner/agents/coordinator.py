@@ -18,7 +18,7 @@ class AgentCoordinator:
             raise AgentError("AgentCoordinator requires at least one agent")
         self.agents = list(agents)
 
-    def review(self, fingerprint) -> AgentReport:
+    def review(self, fingerprint: Any) -> AgentReport:
         """Run all agents independently and merge their reports."""
         agent_reports: list[AgentReport] = []
 
