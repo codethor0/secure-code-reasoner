@@ -391,7 +391,7 @@ class Fingerprinter:
 
             class_name = func_artifact.metadata.get("class")
             if class_name:
-                class_id = self._find_class_id(str(class_name), class_artifacts, func_artifact.path)
+                class_id = self._find_class_id(str(class_name), class_artifacts, func_artifact.path) if isinstance(class_name, str) else None
                 if class_id:
                     if func_id not in edges:
                         edges[func_id] = set()
