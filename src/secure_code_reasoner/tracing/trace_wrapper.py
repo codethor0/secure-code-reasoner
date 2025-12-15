@@ -3,6 +3,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 
 def trace_file_operation(operation: str, file_path: Path) -> None:

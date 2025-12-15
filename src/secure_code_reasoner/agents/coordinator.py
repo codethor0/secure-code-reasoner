@@ -1,6 +1,7 @@
 """Agent coordinator for merging agent reports."""
 
 import logging
+from typing import Any
 
 from secure_code_reasoner.agents.agent import Agent
 from secure_code_reasoner.agents.models import AgentFinding, AgentReport, PatchSuggestion, Severity
