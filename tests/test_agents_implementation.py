@@ -1,27 +1,20 @@
 """Unit tests for agent framework implementation."""
 
-import tempfile
 from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
-
 from secure_code_reasoner.agents import (
     AgentCoordinator,
     CodeAnalystAgent,
     PatchAdvisorAgent,
     SecurityReviewerAgent,
 )
-from secure_code_reasoner.agents.models import AgentFinding, AgentReport, PatchSuggestion, Severity
+from secure_code_reasoner.agents.models import AgentReport, Severity
 from secure_code_reasoner.exceptions import AgentError
 from secure_code_reasoner.fingerprinting import Fingerprinter
 from secure_code_reasoner.fingerprinting.models import (
-    CodeArtifactType,
-    DependencyGraph,
-    FileArtifact,
-    FunctionArtifact,
     RepositoryFingerprint,
-    RiskSignal,
 )
 
 

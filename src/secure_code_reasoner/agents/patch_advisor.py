@@ -1,8 +1,7 @@
 """Patch advisor agent implementation."""
 
 import logging
-from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from secure_code_reasoner.agents.agent import Agent
 from secure_code_reasoner.agents.models import AgentFinding, AgentReport, PatchSuggestion, Severity
@@ -29,8 +28,8 @@ class PatchAdvisorAgent(Agent):
         if not isinstance(fingerprint, RepositoryFingerprint):
             raise AgentError(f"PatchAdvisorAgent requires RepositoryFingerprint, got {type(fingerprint)}")
 
-        findings: List[AgentFinding] = []
-        patch_suggestions: List[PatchSuggestion] = []
+        findings: list[AgentFinding] = []
+        patch_suggestions: list[PatchSuggestion] = []
 
         for artifact in fingerprint.artifacts:
             if RiskSignal.DYNAMIC_CODE_EXECUTION in artifact.risk_signals:

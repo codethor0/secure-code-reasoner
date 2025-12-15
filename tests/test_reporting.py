@@ -3,11 +3,15 @@
 from pathlib import Path
 
 import pytest
-
 from secure_code_reasoner.agents.models import AgentFinding, AgentReport, Severity
 from secure_code_reasoner.fingerprinting import Fingerprinter
 from secure_code_reasoner.reporting import JSONFormatter, Reporter, TextFormatter
-from secure_code_reasoner.tracing.models import ExecutionTrace, RiskScore, TraceEvent, TraceEventType
+from secure_code_reasoner.tracing.models import (
+    ExecutionTrace,
+    RiskScore,
+    TraceEvent,
+    TraceEventType,
+)
 
 
 @pytest.fixture

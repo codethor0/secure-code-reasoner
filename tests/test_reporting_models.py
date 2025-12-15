@@ -11,7 +11,10 @@ from secure_code_reasoner.fingerprinting.models import (
     RiskSignal,
 )
 from secure_code_reasoner.reporting.models import FinalReport
-from secure_code_reasoner.tracing.models import ExecutionTrace, RiskScore, TraceEvent, TraceEventType
+from secure_code_reasoner.tracing.models import (
+    ExecutionTrace,
+    RiskScore,
+)
 
 
 class TestFinalReport:

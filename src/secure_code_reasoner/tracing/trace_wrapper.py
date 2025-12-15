@@ -79,12 +79,12 @@ def install_trace_hooks() -> None:
                 raise PermissionError("Network access blocked by sandbox")
             sock = original_socket_create(*args, **kwargs)
             original_connect = sock.connect
-            
+
             def traced_connect(address):
                 addr, port = address
                 trace_network_operation("network_connect", str(addr), port)
                 return original_connect(address)
-            
+
             sock.connect = traced_connect
             return sock
         return None

@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from secure_code_reasoner.exceptions import SandboxError, TracingError
 from secure_code_reasoner.tracing.models import (
@@ -43,7 +43,7 @@ class ExecutionTracer:
         self.allow_network = allow_network
         self.allow_file_write = allow_file_write
 
-    def trace(self, script_path: Path, args: Optional[List[str]] = None) -> ExecutionTrace:
+    def trace(self, script_path: Path, args: Optional[list[str]] = None) -> ExecutionTrace:
         """Trace execution of a script."""
         script_path = Path(script_path).resolve()
         if not script_path.exists():
@@ -54,7 +54,7 @@ class ExecutionTracer:
         logger.info(f"Tracing execution of: {script_path}")
 
         start_time = time.time()
-        events: List[TraceEvent] = []
+        events: list[TraceEvent] = []
         exit_code: Optional[int] = None
         stdout = ""
         stderr = ""
@@ -118,10 +118,10 @@ class ExecutionTracer:
             },
         )
 
-    def _execute_with_tracing(self, script_path: Path, args: List[str]) -> subprocess.CompletedProcess:
+    def _execute_with_tracing(self, script_path: Path, args: list[str]) -> subprocess.CompletedProcess:
         """Execute script with tracing enabled."""
         python_executable = sys.executable
-        
+
         wrapper_module = Path(__file__).parent / "trace_wrapper.py"
         wrapper_code = f"""
 import sys
@@ -133,7 +133,7 @@ with open(r'{script_path}', 'r') as f:
     code = compile(f.read(), r'{script_path}', 'exec')
     exec(code, {{'__name__': '__main__', '__file__': r'{script_path}'}})
 """
-        
+
         cmd = [python_executable, "-c", wrapper_code] + args
 
         env = self._get_sandbox_env()
@@ -168,9 +168,9 @@ with open(r'{script_path}', 'r') as f:
             return output[: self.max_output_size] + f"\n... (truncated, max {self.max_output_size} bytes)"
         return output
 
-    def _parse_trace_output(self, stdout: str, stderr: str) -> List[TraceEvent]:
+    def _parse_trace_output(self, stdout: str, stderr: str) -> list[TraceEvent]:
         """Parse trace output into events."""
-        events: List[TraceEvent] = []
+        events: list[TraceEvent] = []
         lines = (stdout + "\n" + stderr).splitlines()
 
         for line in lines:
@@ -242,7 +242,7 @@ with open(r'{script_path}', 'r') as f:
             metadata=metadata,
         )
 
-    def _calculate_risk_score(self, events: List[TraceEvent], exit_code: Optional[int], execution_time: float) -> RiskScore:
+    def _calculate_risk_score(self, events: list[TraceEvent], exit_code: Optional[int], execution_time: float) -> RiskScore:
         """Calculate risk score based on trace events using deterministic rules."""
         score = 0.0
         factors: dict[str, float] = {}

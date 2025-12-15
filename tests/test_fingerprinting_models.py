@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from secure_code_reasoner.fingerprinting.models import (
     ClassArtifact,
     CodeArtifact,

@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional
+from typing import Any, Optional
 
 
 def _ensure_hashable(cls):
@@ -51,8 +51,8 @@ class CodeArtifact:
     path: Path
     start_line: int
     end_line: int
-    risk_signals: FrozenSet[RiskSignal] = field(default_factory=frozenset)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    risk_signals: frozenset[RiskSignal] = field(default_factory=frozenset)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate artifact after initialization."""
@@ -65,7 +65,7 @@ class CodeArtifact:
         metadata_hash = self._make_metadata_hashable(self.metadata)
         object.__setattr__(self, "_metadata_hash", metadata_hash)
 
-    def _make_metadata_hashable(self, metadata: Dict[str, Any]) -> tuple:
+    def _make_metadata_hashable(self, metadata: dict[str, Any]) -> tuple:
         """Convert metadata dict to hashable tuple."""
         if not metadata:
             return ()
@@ -83,7 +83,7 @@ class CodeArtifact:
         metadata_hash = getattr(self, "_metadata_hash", ())
         return hash((self.artifact_type, self.name, self.path, self.start_line, self.end_line, self.risk_signals, metadata_hash))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert artifact to dictionary for serialization."""
         return {
             "artifact_type": self.artifact_type.value,
@@ -119,7 +119,7 @@ class FileArtifact(CodeArtifact):
         base_hash = super().__hash__()
         return hash((base_hash, self.language, self.line_count, self.byte_size))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert file artifact to dictionary."""
         base_dict = super().to_dict()
         base_dict.update(
@@ -136,8 +136,8 @@ class FileArtifact(CodeArtifact):
 class ClassArtifact(CodeArtifact):
     """Represents a class-level code artifact."""
 
-    methods: FrozenSet[str] = field(default_factory=frozenset)
-    base_classes: FrozenSet[str] = field(default_factory=frozenset)
+    methods: frozenset[str] = field(default_factory=frozenset)
+    base_classes: frozenset[str] = field(default_factory=frozenset)
 
     def __post_init__(self) -> None:
         """Validate class artifact."""
@@ -150,7 +150,7 @@ class ClassArtifact(CodeArtifact):
         base_hash = super().__hash__()
         return hash((base_hash, self.methods, self.base_classes))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert class artifact to dictionary."""
         base_dict = super().to_dict()
         base_dict.update(
@@ -166,10 +166,10 @@ class ClassArtifact(CodeArtifact):
 class FunctionArtifact(CodeArtifact):
     """Represents a function-level code artifact."""
 
-    parameters: FrozenSet[str] = field(default_factory=frozenset)
+    parameters: frozenset[str] = field(default_factory=frozenset)
     return_type: Optional[str] = None
     is_async: bool = False
-    decorators: FrozenSet[str] = field(default_factory=frozenset)
+    decorators: frozenset[str] = field(default_factory=frozenset)
 
     def __post_init__(self) -> None:
         """Validate function artifact."""
@@ -182,7 +182,7 @@ class FunctionArtifact(CodeArtifact):
         base_hash = super().__hash__()
         return hash((base_hash, self.parameters, self.return_type, self.is_async, self.decorators))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert function artifact to dictionary."""
         base_dict = super().to_dict()
         base_dict.update(
@@ -200,20 +200,20 @@ class FunctionArtifact(CodeArtifact):
 class DependencyGraph:
     """Represents dependencies between code artifacts."""
 
-    edges: Dict[str, FrozenSet[str]] = field(default_factory=dict)
+    edges: dict[str, frozenset[str]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate and normalize dependency graph."""
-        normalized_edges: Dict[str, FrozenSet[str]] = {}
+        normalized_edges: dict[str, frozenset[str]] = {}
         for source, targets in self.edges.items():
             normalized_edges[source] = frozenset(targets) if not isinstance(targets, frozenset) else targets
         object.__setattr__(self, "edges", normalized_edges)
 
-    def get_dependencies(self, artifact_id: str) -> FrozenSet[str]:
+    def get_dependencies(self, artifact_id: str) -> frozenset[str]:
         """Get all artifacts that the given artifact depends on."""
         return self.edges.get(artifact_id, frozenset())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dependency graph to dictionary."""
         return {
             "edges": {source: sorted(targets) for source, targets in sorted(self.edges.items())},
@@ -230,11 +230,11 @@ class RepositoryFingerprint:
     total_classes: int
     total_functions: int
     total_lines: int
-    languages: Dict[str, int]
-    artifacts: FrozenSet[CodeArtifact]
+    languages: dict[str, int]
+    artifacts: frozenset[CodeArtifact]
     dependency_graph: DependencyGraph
-    risk_signals: Dict[RiskSignal, int]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    risk_signals: dict[RiskSignal, int]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate fingerprint after initialization."""
@@ -254,7 +254,7 @@ class RepositoryFingerprint:
             except TypeError:
                 object.__setattr__(self, "artifacts", frozenset())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert fingerprint to dictionary for serialization."""
         return {
             "repository_path": str(self.repository_path),

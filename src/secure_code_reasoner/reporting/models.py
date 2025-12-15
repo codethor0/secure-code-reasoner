@@ -1,7 +1,7 @@
 """Data models for the reporting subsystem."""
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from secure_code_reasoner.agents.models import AgentReport
@@ -16,9 +16,9 @@ class FinalReport:
     fingerprint: "RepositoryFingerprint"
     agent_report: "AgentReport"
     execution_trace: Optional["ExecutionTrace"] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert final report to dictionary for serialization."""
         result = {
             "fingerprint": self.fingerprint.to_dict(),

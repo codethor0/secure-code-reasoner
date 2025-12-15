@@ -1,10 +1,8 @@
 """Legacy tests for fingerprinting module - kept for compatibility."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
-
 from secure_code_reasoner.exceptions import FingerprintingError
 from secure_code_reasoner.fingerprinting import Fingerprinter
 from secure_code_reasoner.fingerprinting.models import RiskSignal
@@ -23,7 +21,7 @@ import json
 class MyClass:
     def __init__(self):
         self.value = 1
-    
+
     def method1(self, param1, param2):
         return param1 + param2
 
