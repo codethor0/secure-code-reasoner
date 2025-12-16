@@ -4,7 +4,6 @@ import ast
 import hashlib
 import logging
 from pathlib import Path
-from typing import Dict, FrozenSet, List, Set
 
 from secure_code_reasoner.exceptions import FingerprintingError
 from secure_code_reasoner.fingerprinting.models import (
@@ -27,18 +26,18 @@ class PythonASTVisitor(ast.NodeVisitor):
     def __init__(self, file_path: Path) -> None:
         """Initialize visitor."""
         self.file_path = file_path
-        self.classes: List[ClassArtifact] = []
-        self.functions: List[FunctionArtifact] = []
-        self.risk_signals: Set[RiskSignal] = set()
+        self.classes: list[ClassArtifact] = []
+        self.functions: list[FunctionArtifact] = []
+        self.risk_signals: set[RiskSignal] = set()
         self.current_class: str | None = None
-        self.imports: Set[str] = set()
+        self.imports: set[str] = set()
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Visit class definition."""
         base_classes = [self._get_name(base) for base in node.bases]
-        methods: Set[str] = set()
+        methods: set[str] = set()
         for item in node.body:
-            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef):
                 methods.add(item.name)
 
         class_segment = ClassArtifact(
@@ -180,18 +179,18 @@ class PythonASTVisitor(ast.NodeVisitor):
         }
         return module_name.split(".")[0] not in stdlib_modules
 
-    def _extract_class_risk_signals(self, node: ast.ClassDef) -> FrozenSet[RiskSignal]:
+    def _extract_class_risk_signals(self, node: ast.ClassDef) -> frozenset[RiskSignal]:
         """Extract risk signals from class definition."""
-        signals: Set[RiskSignal] = set()
+        signals: set[RiskSignal] = set()
         for base in node.bases:
             base_name = self._get_name(base)
             if "pickle" in base_name.lower() or "serialize" in base_name.lower():
                 signals.add(RiskSignal.DESERIALIZATION)
         return frozenset(signals)
 
-    def _extract_function_risk_signals(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> FrozenSet[RiskSignal]:
+    def _extract_function_risk_signals(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> frozenset[RiskSignal]:
         """Extract risk signals from function definition."""
-        signals: Set[RiskSignal] = set()
+        signals: set[RiskSignal] = set()
         for decorator in node.decorator_list:
             decorator_name = self._get_name(decorator)
             if "pickle" in decorator_name.lower():
@@ -237,8 +236,8 @@ class Fingerprinter:
     def fingerprint(self) -> RepositoryFingerprint:
         """Generate fingerprint for the repository."""
         logger.info(f"Fingerprinting repository: {self.repository_path}")
-        artifacts: List[CodeArtifact] = []
-        languages: Dict[str, int] = {}
+        artifacts: list[CodeArtifact] = []
+        languages: dict[str, int] = {}
         total_lines = 0
 
         for file_path in self._walk_repository():
@@ -256,7 +255,7 @@ class Fingerprinter:
 
         dependency_graph = self._build_dependency_graph(artifacts)
 
-        risk_signals: Dict[RiskSignal, int] = {}
+        risk_signals: dict[RiskSignal, int] = {}
         for artifact in artifacts:
             for signal in artifact.risk_signals:
                 risk_signals[signal] = risk_signals.get(signal, 0) + 1
@@ -286,9 +285,9 @@ class Fingerprinter:
             risk_signals=risk_signals,
         )
 
-    def _walk_repository(self) -> List[Path]:
+    def _walk_repository(self) -> list[Path]:
         """Walk repository and return all processable files in deterministic order."""
-        files: List[Path] = []
+        files: list[Path] = []
 
         for path in sorted(self.repository_path.rglob("*")):
             if path.is_dir():
@@ -302,9 +301,9 @@ class Fingerprinter:
 
         return sorted(files)
 
-    def _process_file(self, file_path: Path) -> List[CodeArtifact]:
+    def _process_file(self, file_path: Path) -> list[CodeArtifact]:
         """Process a single file and extract artifacts."""
-        artifacts: List[CodeArtifact] = []
+        artifacts: list[CodeArtifact] = []
         relative_path = file_path.relative_to(self.repository_path)
 
         if file_path.suffix == ".py":
@@ -354,15 +353,15 @@ class Fingerprinter:
 
         return artifacts
 
-    def _build_dependency_graph(self, artifacts: List[CodeArtifact]) -> DependencyGraph:
+    def _build_dependency_graph(self, artifacts: list[CodeArtifact]) -> DependencyGraph:
         """Build dependency graph representing cross-file relationships."""
-        edges: Dict[str, Set[str]] = {}
+        edges: dict[str, set[str]] = {}
 
         file_artifacts = [a for a in artifacts if isinstance(a, FileArtifact)]
         class_artifacts = [a for a in artifacts if isinstance(a, ClassArtifact)]
         function_artifacts = [a for a in artifacts if isinstance(a, FunctionArtifact)]
 
-        artifact_by_id: Dict[str, CodeArtifact] = {}
+        artifact_by_id: dict[str, CodeArtifact] = {}
         for artifact in artifacts:
             artifact_id = self._get_artifact_id(artifact)
             artifact_by_id[artifact_id] = artifact
@@ -391,27 +390,27 @@ class Fingerprinter:
                 edges[func_id].add(file_id)
 
             class_name = func_artifact.metadata.get("class")
-            if class_name:
-                class_id = self._find_class_id(class_name, class_artifacts, func_artifact.path)
-                if class_id:
+            if class_name and isinstance(class_name, str):
+                func_class_id = self._find_class_id(class_name, class_artifacts, func_artifact.path)
+                if func_class_id:
                     if func_id not in edges:
                         edges[func_id] = set()
-                    edges[func_id].add(class_id)
+                    edges[func_id].add(func_class_id)
 
-        normalized_edges: Dict[str, FrozenSet[str]] = {
+        normalized_edges: dict[str, frozenset[str]] = {
             source: frozenset(targets) for source, targets in sorted(edges.items())
         }
 
         return DependencyGraph(edges=normalized_edges)
 
-    def _get_file_id_for_artifact(self, artifact: CodeArtifact, file_artifacts: List[FileArtifact]) -> str | None:
+    def _get_file_id_for_artifact(self, artifact: CodeArtifact, file_artifacts: list[FileArtifact]) -> str | None:
         """Find the file artifact ID that contains this artifact."""
         for file_artifact in file_artifacts:
             if file_artifact.path == artifact.path:
                 return self._get_artifact_id(file_artifact)
         return None
 
-    def _find_class_id(self, class_name: str, class_artifacts: List[ClassArtifact], file_path: Path) -> str | None:
+    def _find_class_id(self, class_name: str, class_artifacts: list[ClassArtifact], file_path: Path) -> str | None:
         """Find class artifact ID by name in the same file."""
         for class_artifact in class_artifacts:
             if class_artifact.name == class_name and class_artifact.path == file_path:
@@ -422,9 +421,9 @@ class Fingerprinter:
         """Generate deterministic ID for an artifact."""
         return f"{artifact.path.as_posix()}:{artifact.artifact_type.value}:{artifact.name}:{artifact.start_line}"
 
-    def _compute_fingerprint_hash(self, artifacts: List[CodeArtifact], graph: DependencyGraph) -> str:
+    def _compute_fingerprint_hash(self, artifacts: list[CodeArtifact], graph: DependencyGraph) -> str:
         """Compute deterministic hash of fingerprint."""
-        hash_input: List[str] = []
+        hash_input: list[str] = []
 
         for artifact in sorted(artifacts, key=lambda a: (a.path.as_posix(), a.start_line, a.name)):
             artifact_repr = f"{artifact.artifact_type.value}:{artifact.path.as_posix()}:{artifact.name}:{artifact.start_line}:{artifact.end_line}"

@@ -2,7 +2,6 @@
 
 import json
 from abc import ABC, abstractmethod
-from typing import Any, Dict
 
 from secure_code_reasoner.agents.models import AgentReport, Severity
 from secure_code_reasoner.fingerprinting.models import RepositoryFingerprint
@@ -95,7 +94,7 @@ class TextFormatter(Formatter):
             lines.append("")
 
             severity_order = [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFO]
-            findings_by_severity: Dict[Severity, list] = {s: [] for s in severity_order}
+            findings_by_severity: dict[Severity, list] = {s: [] for s in severity_order}
 
             for finding in report.findings:
                 findings_by_severity[finding.severity].append(finding)

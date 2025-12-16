@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from secure_code_reasoner.agents import (
     AgentCoordinator,
     CodeAnalystAgent,
@@ -12,7 +11,6 @@ from secure_code_reasoner.agents import (
 )
 from secure_code_reasoner.agents.models import Severity
 from secure_code_reasoner.fingerprinting import Fingerprinter
-from secure_code_reasoner.fingerprinting.models import RiskSignal
 
 
 @pytest.fixture

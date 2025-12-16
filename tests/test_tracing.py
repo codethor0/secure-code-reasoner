@@ -1,10 +1,8 @@
 """Tests for execution tracing module."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
-
 from secure_code_reasoner.exceptions import TracingError
 from secure_code_reasoner.tracing import ExecutionTracer
 from secure_code_reasoner.tracing.models import TraceEventType
@@ -69,7 +67,7 @@ time.sleep(10)
 
 def test_risk_score_calculation() -> None:
     """Test risk score calculation."""
-    from secure_code_reasoner.tracing.models import RiskScore, TraceEvent, TraceEventType
+    from secure_code_reasoner.tracing.models import TraceEvent, TraceEventType
 
     events = [
         TraceEvent(event_type=TraceEventType.FILE_WRITE, timestamp=1.0),
@@ -101,7 +99,12 @@ def test_trace_event_creation() -> None:
 
 def test_execution_trace_creation() -> None:
     """Test execution trace creation."""
-    from secure_code_reasoner.tracing.models import ExecutionTrace, RiskScore, TraceEvent, TraceEventType
+    from secure_code_reasoner.tracing.models import (
+        ExecutionTrace,
+        RiskScore,
+        TraceEvent,
+        TraceEventType,
+    )
 
     events = [TraceEvent(event_type=TraceEventType.FILE_READ, timestamp=1.0)]
     risk_score = RiskScore(score=50.0, explanation="Test")

@@ -1,15 +1,12 @@
 """Unit tests for fingerprinting subsystem implementation."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
-
 from secure_code_reasoner.exceptions import FingerprintingError
 from secure_code_reasoner.fingerprinting import Fingerprinter
 from secure_code_reasoner.fingerprinting.models import (
     ClassArtifact,
-    CodeArtifactType,
     DependencyGraph,
     FileArtifact,
     FunctionArtifact,
@@ -31,7 +28,7 @@ import json
 class MyClass:
     def __init__(self):
         self.value = 1
-    
+
     def method1(self, param1, param2):
         return param1 + param2
 
@@ -180,7 +177,7 @@ class TestFileProcessing:
         fingerprinter = Fingerprinter(repo)
         artifacts = fingerprinter._process_file(file_path)
         assert len(artifacts) >= 2
-        file_artifact = next(a for a in artifacts if isinstance(a, FileArtifact))
+        next(a for a in artifacts if isinstance(a, FileArtifact))
         class_artifact = next(a for a in artifacts if isinstance(a, ClassArtifact))
         assert class_artifact.name == "TestClass"
         assert "method" in class_artifact.methods

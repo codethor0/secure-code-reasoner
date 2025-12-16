@@ -3,6 +3,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 
 def trace_file_operation(operation: str, file_path: Path) -> None:
@@ -53,8 +54,8 @@ def install_trace_hooks() -> None:
     except ImportError:
         pass
 
-    def traced_open(file, mode="r", *args, **kwargs):
-        file_path = Path(file) if isinstance(file, (str, Path)) else None
+    def traced_open(file: Any, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
+        file_path = Path(file) if isinstance(file, str | Path) else None
         if file_path:
             if "w" in mode or "a" in mode or "x" in mode:
                 if os.environ.get("SCR_NO_FILE_WRITE") == "1":
@@ -64,7 +65,7 @@ def install_trace_hooks() -> None:
                 trace_file_operation("file_read", file_path)
         return original_open(file, mode, *args, **kwargs)
 
-    def traced_subprocess_run(*args, **kwargs):
+    def traced_subprocess_run(*args: Any, **kwargs: Any) -> Any:
         if original_subprocess_run:
             import os as os_module
             pid = os_module.getpid()
@@ -73,32 +74,32 @@ def install_trace_hooks() -> None:
             return original_subprocess_run(*args, **kwargs)
         return None
 
-    def traced_socket_create(*args, **kwargs):
+    def traced_socket_create(*args: Any, **kwargs: Any) -> Any:
         if original_socket_create:
             if os.environ.get("SCR_NO_NETWORK") == "1":
                 raise PermissionError("Network access blocked by sandbox")
             sock = original_socket_create(*args, **kwargs)
             original_connect = sock.connect
-            
-            def traced_connect(address):
+
+            def traced_connect(address: tuple[str | Any, int]) -> Any:
                 addr, port = address
                 trace_network_operation("network_connect", str(addr), port)
                 return original_connect(address)
-            
-            sock.connect = traced_connect
+
+            sock.connect = traced_connect  # type: ignore[method-assign,assignment]
             return sock
         return None
 
     builtins = __import__("builtins")
-    builtins.open = traced_open
+    builtins.open = traced_open  # type: ignore[attr-defined,assignment]
 
     if original_subprocess_run:
         import subprocess
-        subprocess.run = traced_subprocess_run
+        subprocess.run = traced_subprocess_run  # type: ignore[assignment]
 
     if original_socket_create:
         import socket
-        socket.socket = traced_socket_create
+        socket.socket = traced_socket_create  # type: ignore[assignment,misc]
 
 
 if __name__ == "__main__":
