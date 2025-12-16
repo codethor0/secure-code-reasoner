@@ -2,7 +2,6 @@
 
 import json
 from abc import ABC, abstractmethod
-from typing import Any, Dict
 
 from secure_code_reasoner.agents.models import AgentReport, Severity
 from secure_code_reasoner.fingerprinting.models import RepositoryFingerprint
@@ -71,7 +70,9 @@ class TextFormatter(Formatter):
         if fingerprint.risk_signals:
             lines.append("")
             lines.append("Risk Signals:")
-            for signal, count in sorted(fingerprint.risk_signals.items(), key=lambda x: x[1], reverse=True):
+            for signal, count in sorted(
+                fingerprint.risk_signals.items(), key=lambda x: x[1], reverse=True
+            ):
                 lines.append(f"  {signal.value}: {count}")
 
         lines.append("")
@@ -94,8 +95,14 @@ class TextFormatter(Formatter):
             lines.append(f"Findings ({len(report.findings)}):")
             lines.append("")
 
-            severity_order = [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFO]
-            findings_by_severity: Dict[Severity, list] = {s: [] for s in severity_order}
+            severity_order = [
+                Severity.CRITICAL,
+                Severity.HIGH,
+                Severity.MEDIUM,
+                Severity.LOW,
+                Severity.INFO,
+            ]
+            findings_by_severity: dict[Severity, list] = {s: [] for s in severity_order}
 
             for finding in report.findings:
                 findings_by_severity[finding.severity].append(finding)
@@ -121,8 +128,12 @@ class TextFormatter(Formatter):
         if report.patch_suggestions:
             lines.append(f"Patch Suggestions ({len(report.patch_suggestions)}):")
             lines.append("")
-            for i, patch in enumerate(sorted(report.patch_suggestions, key=lambda p: (p.file_path, p.line_start)), 1):
-                lines.append(f"  {i}. {patch.file_path} (lines {patch.line_start}-{patch.line_end})")
+            for i, patch in enumerate(
+                sorted(report.patch_suggestions, key=lambda p: (p.file_path, p.line_start)), 1
+            ):
+                lines.append(
+                    f"  {i}. {patch.file_path} (lines {patch.line_start}-{patch.line_end})"
+                )
                 lines.append(f"     Description: {patch.description}")
                 lines.append("     Original:")
                 for line in patch.original_code.splitlines():

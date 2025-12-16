@@ -1,6 +1,5 @@
 """Tests for execution tracing module."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -69,7 +68,7 @@ time.sleep(10)
 
 def test_risk_score_calculation() -> None:
     """Test risk score calculation."""
-    from secure_code_reasoner.tracing.models import RiskScore, TraceEvent, TraceEventType
+    from secure_code_reasoner.tracing.models import TraceEvent, TraceEventType
 
     events = [
         TraceEvent(event_type=TraceEventType.FILE_WRITE, timestamp=1.0),
@@ -81,7 +80,11 @@ def test_risk_score_calculation() -> None:
 
     assert risk_score.score > 0
     assert risk_score.max_score == 100.0
-    assert "file_operations" in risk_score.factors or "process_execution" in risk_score.factors or "unauthorized_file_operations" in risk_score.factors
+    assert (
+        "file_operations" in risk_score.factors
+        or "process_execution" in risk_score.factors
+        or "unauthorized_file_operations" in risk_score.factors
+    )
 
 
 def test_trace_event_creation() -> None:
@@ -101,7 +104,12 @@ def test_trace_event_creation() -> None:
 
 def test_execution_trace_creation() -> None:
     """Test execution trace creation."""
-    from secure_code_reasoner.tracing.models import ExecutionTrace, RiskScore, TraceEvent, TraceEventType
+    from secure_code_reasoner.tracing.models import (
+        ExecutionTrace,
+        RiskScore,
+        TraceEvent,
+        TraceEventType,
+    )
 
     events = [TraceEvent(event_type=TraceEventType.FILE_READ, timestamp=1.0)]
     risk_score = RiskScore(score=50.0, explanation="Test")
@@ -118,4 +126,3 @@ def test_execution_trace_creation() -> None:
     assert trace.exit_code == 0
     assert trace.risk_score.score == 50.0
     assert "events" in trace.to_dict()
-

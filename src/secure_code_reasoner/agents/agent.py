@@ -1,6 +1,7 @@
 """Base agent interface for the agent framework subsystem."""
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class Agent(ABC):
@@ -11,6 +12,6 @@ class Agent(ABC):
         self.name = name
 
     @abstractmethod
-    def analyze(self, fingerprint):
+    def analyze(self, fingerprint: Any) -> Any:
         """Analyze fingerprint and return report."""
         pass

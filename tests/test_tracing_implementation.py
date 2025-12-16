@@ -1,14 +1,13 @@
 """Unit tests for tracing subsystem implementation."""
 
-import tempfile
 import time
 from pathlib import Path
 
 import pytest
 
-from secure_code_reasoner.exceptions import SandboxError, TracingError
+from secure_code_reasoner.exceptions import TracingError
 from secure_code_reasoner.tracing import ExecutionTracer
-from secure_code_reasoner.tracing.models import ExecutionTrace, RiskScore, TraceEventType
+from secure_code_reasoner.tracing.models import ExecutionTrace, TraceEventType
 
 
 @pytest.fixture
@@ -387,4 +386,3 @@ class TestResourceLimits:
 
         assert elapsed < 1.0
         assert trace.exit_code == -1
-

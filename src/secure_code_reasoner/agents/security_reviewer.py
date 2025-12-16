@@ -1,14 +1,11 @@
 """Security reviewer agent implementation."""
 
 import logging
-from typing import List
 
 from secure_code_reasoner.agents.agent import Agent
 from secure_code_reasoner.agents.models import AgentFinding, AgentReport, Severity
 from secure_code_reasoner.exceptions import AgentError
 from secure_code_reasoner.fingerprinting.models import (
-    CodeArtifact,
-    FunctionArtifact,
     RepositoryFingerprint,
     RiskSignal,
 )
@@ -39,9 +36,11 @@ class SecurityReviewerAgent(Agent):
     def analyze(self, fingerprint: RepositoryFingerprint) -> AgentReport:
         """Analyze security risks in fingerprint."""
         if not isinstance(fingerprint, RepositoryFingerprint):
-            raise AgentError(f"SecurityReviewerAgent requires RepositoryFingerprint, got {type(fingerprint)}")
+            raise AgentError(
+                f"SecurityReviewerAgent requires RepositoryFingerprint, got {type(fingerprint)}"
+            )
 
-        findings: List[AgentFinding] = []
+        findings: list[AgentFinding] = []
 
         for signal, count in fingerprint.risk_signals.items():
             severity = self.RISK_SIGNAL_SEVERITY.get(signal, Severity.INFO)
@@ -134,4 +133,3 @@ class SecurityReviewerAgent(Agent):
             RiskSignal.CONFIGURATION_ACCESS: "Secure configuration storage. Avoid hardcoding secrets.",
         }
         return recommendations.get(signal, "Review this code pattern for security implications.")
-

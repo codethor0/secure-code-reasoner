@@ -457,4 +457,3 @@ class TestRepositoryFingerprint:
         assert result["total_files"] == 1
         assert len(result["artifacts"]) == 1
         assert result["risk_signals"]["network_access"] == 1
-

@@ -1,7 +1,6 @@
 """Code analyst agent implementation."""
 
 import logging
-from typing import List
 
 from secure_code_reasoner.agents.agent import Agent
 from secure_code_reasoner.agents.models import AgentFinding, AgentReport, Severity
@@ -29,9 +28,11 @@ class CodeAnalystAgent(Agent):
     def analyze(self, fingerprint: RepositoryFingerprint) -> AgentReport:
         """Analyze code structure and quality."""
         if not isinstance(fingerprint, RepositoryFingerprint):
-            raise AgentError(f"CodeAnalystAgent requires RepositoryFingerprint, got {type(fingerprint)}")
+            raise AgentError(
+                f"CodeAnalystAgent requires RepositoryFingerprint, got {type(fingerprint)}"
+            )
 
-        findings: List[AgentFinding] = []
+        findings: list[AgentFinding] = []
         total_complexity = 0
         function_count = 0
         large_functions = 0
@@ -123,4 +124,3 @@ class CodeAnalystAgent(Agent):
         if len(artifact.decorators) > 0:
             complexity += len(artifact.decorators)
         return complexity
-

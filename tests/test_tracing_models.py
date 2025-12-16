@@ -280,4 +280,3 @@ class TestExecutionTrace:
         assert result["risk_score"]["score"] == 75.0
         assert result["stdout"] == "output"
         assert result["stderr"] == "errors"
-

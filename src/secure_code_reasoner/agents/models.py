@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional
+from typing import Any
 
 
 class Severity(str, Enum):
@@ -35,11 +35,11 @@ class AgentFinding:
     severity: Severity
     title: str
     description: str
-    file_path: Optional[Path] = None
-    line_number: Optional[int] = None
-    code_snippet: Optional[str] = None
-    recommendation: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    file_path: Path | None = None
+    line_number: int | None = None
+    code_snippet: str | None = None
+    recommendation: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate finding after initialization."""
@@ -54,7 +54,7 @@ class AgentFinding:
         metadata_hash = self._make_metadata_hashable(self.metadata)
         object.__setattr__(self, "_metadata_hash", metadata_hash)
 
-    def _make_metadata_hashable(self, metadata: Dict[str, Any]) -> tuple:
+    def _make_metadata_hashable(self, metadata: dict[str, Any]) -> tuple:
         """Convert metadata dict to hashable tuple."""
         if not metadata:
             return ()
@@ -70,19 +70,21 @@ class AgentFinding:
     def __hash__(self) -> int:
         """Make finding hashable by using hashable metadata representation."""
         metadata_hash = getattr(self, "_metadata_hash", ())
-        return hash((
-            self.agent_name,
-            self.severity,
-            self.title,
-            self.description,
-            self.file_path,
-            self.line_number,
-            self.code_snippet,
-            self.recommendation,
-            metadata_hash,
-        ))
+        return hash(
+            (
+                self.agent_name,
+                self.severity,
+                self.title,
+                self.description,
+                self.file_path,
+                self.line_number,
+                self.code_snippet,
+                self.recommendation,
+                metadata_hash,
+            )
+        )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert finding to dictionary for serialization."""
         return {
             "agent_name": self.agent_name,
@@ -107,7 +109,7 @@ class PatchSuggestion:
     description: str
     line_start: int
     line_end: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate patch suggestion after initialization."""
@@ -124,7 +126,7 @@ class PatchSuggestion:
         metadata_hash = self._make_metadata_hashable(self.metadata)
         object.__setattr__(self, "_metadata_hash", metadata_hash)
 
-    def _make_metadata_hashable(self, metadata: Dict[str, Any]) -> tuple:
+    def _make_metadata_hashable(self, metadata: dict[str, Any]) -> tuple:
         """Convert metadata dict to hashable tuple."""
         if not metadata:
             return ()
@@ -140,17 +142,19 @@ class PatchSuggestion:
     def __hash__(self) -> int:
         """Make patch suggestion hashable by using hashable metadata representation."""
         metadata_hash = getattr(self, "_metadata_hash", ())
-        return hash((
-            self.file_path,
-            self.original_code,
-            self.suggested_code,
-            self.description,
-            self.line_start,
-            self.line_end,
-            metadata_hash,
-        ))
+        return hash(
+            (
+                self.file_path,
+                self.original_code,
+                self.suggested_code,
+                self.description,
+                self.line_start,
+                self.line_end,
+                metadata_hash,
+            )
+        )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert patch suggestion to dictionary for serialization."""
         return {
             "file_path": str(self.file_path),
@@ -168,10 +172,10 @@ class AgentReport:
     """Report from a single analysis agent."""
 
     agent_name: str
-    findings: FrozenSet[AgentFinding] = field(default_factory=frozenset)
-    patch_suggestions: FrozenSet[PatchSuggestion] = field(default_factory=frozenset)
-    summary: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    findings: frozenset[AgentFinding] = field(default_factory=frozenset)
+    patch_suggestions: frozenset[PatchSuggestion] = field(default_factory=frozenset)
+    summary: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate and normalize agent report."""
@@ -182,13 +186,22 @@ class AgentReport:
         if not isinstance(self.patch_suggestions, frozenset):
             object.__setattr__(self, "patch_suggestions", frozenset(self.patch_suggestions))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert agent report to dictionary for serialization."""
         return {
             "agent_name": self.agent_name,
-            "findings": [finding.to_dict() for finding in sorted(self.findings, key=lambda f: (f.severity.priority(), f.title), reverse=True)],
-            "patch_suggestions": [patch.to_dict() for patch in sorted(self.patch_suggestions, key=lambda p: (p.file_path, p.line_start))],
+            "findings": [
+                finding.to_dict()
+                for finding in sorted(
+                    self.findings, key=lambda f: (f.severity.priority(), f.title), reverse=True
+                )
+            ],
+            "patch_suggestions": [
+                patch.to_dict()
+                for patch in sorted(
+                    self.patch_suggestions, key=lambda p: (p.file_path, p.line_start)
+                )
+            ],
             "summary": self.summary,
             "metadata": self.metadata,
         }
-

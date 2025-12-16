@@ -1,8 +1,6 @@
 """Patch advisor agent implementation."""
 
 import logging
-from pathlib import Path
-from typing import List, Optional
 
 from secure_code_reasoner.agents.agent import Agent
 from secure_code_reasoner.agents.models import AgentFinding, AgentReport, PatchSuggestion, Severity
@@ -27,10 +25,12 @@ class PatchAdvisorAgent(Agent):
     def analyze(self, fingerprint: RepositoryFingerprint) -> AgentReport:
         """Analyze fingerprint and suggest patches."""
         if not isinstance(fingerprint, RepositoryFingerprint):
-            raise AgentError(f"PatchAdvisorAgent requires RepositoryFingerprint, got {type(fingerprint)}")
+            raise AgentError(
+                f"PatchAdvisorAgent requires RepositoryFingerprint, got {type(fingerprint)}"
+            )
 
-        findings: List[AgentFinding] = []
-        patch_suggestions: List[PatchSuggestion] = []
+        findings: list[AgentFinding] = []
+        patch_suggestions: list[PatchSuggestion] = []
 
         for artifact in fingerprint.artifacts:
             if RiskSignal.DYNAMIC_CODE_EXECUTION in artifact.risk_signals:
@@ -94,7 +94,7 @@ class PatchAdvisorAgent(Agent):
             metadata={"patch_count": len(patch_suggestions)},
         )
 
-    def _suggest_eval_replacement(self, artifact: CodeArtifact) -> Optional[PatchSuggestion]:
+    def _suggest_eval_replacement(self, artifact: CodeArtifact) -> PatchSuggestion | None:
         """Suggest replacement for eval() usage."""
         return PatchSuggestion(
             file_path=artifact.path,
@@ -103,10 +103,13 @@ class PatchAdvisorAgent(Agent):
             description="Replace eval() with safer JSON parsing or explicit parsing logic. Always validate input before parsing.",
             line_start=artifact.start_line,
             line_end=artifact.end_line,
-            metadata={"risk_signal": RiskSignal.DYNAMIC_CODE_EXECUTION.value, "artifact_name": artifact.name},
+            metadata={
+                "risk_signal": RiskSignal.DYNAMIC_CODE_EXECUTION.value,
+                "artifact_name": artifact.name,
+            },
         )
 
-    def _suggest_safe_deserialization(self, artifact: CodeArtifact) -> Optional[PatchSuggestion]:
+    def _suggest_safe_deserialization(self, artifact: CodeArtifact) -> PatchSuggestion | None:
         """Suggest safer deserialization approach."""
         return PatchSuggestion(
             file_path=artifact.path,
@@ -127,10 +130,13 @@ class PatchAdvisorAgent(Agent):
             description="Use restricted unpickler with allowlist to prevent arbitrary code execution. Only allow deserialization of known safe classes.",
             line_start=artifact.start_line,
             line_end=artifact.end_line,
-            metadata={"risk_signal": RiskSignal.DESERIALIZATION.value, "artifact_name": artifact.name},
+            metadata={
+                "risk_signal": RiskSignal.DESERIALIZATION.value,
+                "artifact_name": artifact.name,
+            },
         )
 
-    def _suggest_parameter_refactoring(self, artifact: FunctionArtifact) -> Optional[PatchSuggestion]:
+    def _suggest_parameter_refactoring(self, artifact: FunctionArtifact) -> PatchSuggestion | None:
         """Suggest refactoring for functions with many parameters."""
         param_list = ", ".join(sorted(artifact.parameters))
         return PatchSuggestion(
@@ -151,4 +157,3 @@ class PatchAdvisorAgent(Agent):
             line_end=artifact.end_line,
             metadata={"parameter_count": len(artifact.parameters), "artifact_name": artifact.name},
         )
-

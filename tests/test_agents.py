@@ -12,7 +12,6 @@ from secure_code_reasoner.agents import (
 )
 from secure_code_reasoner.agents.models import Severity
 from secure_code_reasoner.fingerprinting import Fingerprinter
-from secure_code_reasoner.fingerprinting.models import RiskSignal
 
 
 @pytest.fixture
@@ -145,4 +144,3 @@ def test_agent_report_creation() -> None:
     assert len(report.findings) == 1
     assert report.summary == "Test summary"
     assert "findings" in report.to_dict()
-

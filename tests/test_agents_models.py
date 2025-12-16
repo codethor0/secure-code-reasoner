@@ -346,4 +346,3 @@ class TestAgentReport:
         assert result["findings"][1]["severity"] == "info"
         assert len(result["patch_suggestions"]) == 1
         assert result["summary"] == "Test summary"
-

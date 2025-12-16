@@ -1,6 +1,5 @@
 """Legacy tests for fingerprinting module - kept for compatibility."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -23,7 +22,7 @@ import json
 class MyClass:
     def __init__(self):
         self.value = 1
-    
+
     def method1(self, param1, param2):
         return param1 + param2
 
@@ -83,7 +82,10 @@ def test_fingerprint_risk_signals(sample_repo: Path) -> None:
     fingerprinter = Fingerprinter(sample_repo)
     fingerprint = fingerprinter.fingerprint()
 
-    assert RiskSignal.DYNAMIC_CODE_EXECUTION in fingerprint.risk_signals or RiskSignal.PROCESS_EXECUTION in fingerprint.risk_signals
+    assert (
+        RiskSignal.DYNAMIC_CODE_EXECUTION in fingerprint.risk_signals
+        or RiskSignal.PROCESS_EXECUTION in fingerprint.risk_signals
+    )
 
 
 def test_fingerprint_dependency_graph(sample_repo: Path) -> None:

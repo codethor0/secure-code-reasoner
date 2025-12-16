@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional
+from typing import Any
 
 
 class TraceEventType(str, Enum):
@@ -26,13 +26,13 @@ class TraceEvent:
 
     event_type: TraceEventType
     timestamp: float
-    file_path: Optional[Path] = None
-    process_id: Optional[int] = None
-    network_address: Optional[str] = None
-    network_port: Optional[int] = None
-    command: Optional[str] = None
-    module_name: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    file_path: Path | None = None
+    process_id: int | None = None
+    network_address: str | None = None
+    network_port: int | None = None
+    command: str | None = None
+    module_name: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate trace event after initialization."""
@@ -45,7 +45,7 @@ class TraceEvent:
         metadata_hash = self._make_metadata_hashable(self.metadata)
         object.__setattr__(self, "_metadata_hash", metadata_hash)
 
-    def _make_metadata_hashable(self, metadata: Dict[str, Any]) -> tuple:
+    def _make_metadata_hashable(self, metadata: dict[str, Any]) -> tuple:
         """Convert metadata dict to hashable tuple."""
         if not metadata:
             return ()
@@ -61,19 +61,21 @@ class TraceEvent:
     def __hash__(self) -> int:
         """Make trace event hashable by using hashable metadata representation."""
         metadata_hash = getattr(self, "_metadata_hash", ())
-        return hash((
-            self.event_type,
-            self.timestamp,
-            self.file_path,
-            self.process_id,
-            self.network_address,
-            self.network_port,
-            self.command,
-            self.module_name,
-            metadata_hash,
-        ))
+        return hash(
+            (
+                self.event_type,
+                self.timestamp,
+                self.file_path,
+                self.process_id,
+                self.network_address,
+                self.network_port,
+                self.command,
+                self.module_name,
+                metadata_hash,
+            )
+        )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert trace event to dictionary for serialization."""
         return {
             "event_type": self.event_type.value,
@@ -94,7 +96,7 @@ class RiskScore:
 
     score: float
     max_score: float = 100.0
-    factors: Dict[str, float] = field(default_factory=dict)
+    factors: dict[str, float] = field(default_factory=dict)
     explanation: str = ""
 
     def __post_init__(self) -> None:
@@ -113,7 +115,7 @@ class RiskScore:
         """Get normalized score as a value between 0.0 and 1.0."""
         return self.score / self.max_score if self.max_score > 0 else 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert risk score to dictionary for serialization."""
         return {
             "score": self.score,
@@ -129,13 +131,13 @@ class ExecutionTrace:
     """Complete execution trace with risk assessment."""
 
     script_path: Path
-    events: FrozenSet[TraceEvent] = field(default_factory=frozenset)
-    exit_code: Optional[int] = None
+    events: frozenset[TraceEvent] = field(default_factory=frozenset)
+    exit_code: int | None = None
     execution_time: float = 0.0
-    risk_score: Optional[RiskScore] = None
+    risk_score: RiskScore | None = None
     stdout: str = ""
     stderr: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate execution trace after initialization."""
@@ -144,7 +146,7 @@ class ExecutionTrace:
         if not isinstance(self.events, frozenset):
             object.__setattr__(self, "events", frozenset(self.events))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert execution trace to dictionary for serialization."""
         return {
             "script_path": str(self.script_path),
@@ -156,4 +158,3 @@ class ExecutionTrace:
             "stderr": self.stderr,
             "metadata": self.metadata,
         }
-
