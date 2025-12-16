@@ -27,10 +27,14 @@ class AgentCoordinator:
             try:
                 report = agent.analyze(fingerprint)
                 if not isinstance(report, AgentReport):
-                    logger.warning(f"Agent {agent.name} returned invalid report type: {type(report)}")
+                    logger.warning(
+                        f"Agent {agent.name} returned invalid report type: {type(report)}"
+                    )
                     continue
                 agent_reports.append(report)
-                logger.debug(f"Agent {agent.name} completed: {len(report.findings)} findings, {len(report.patch_suggestions)} patches")
+                logger.debug(
+                    f"Agent {agent.name} completed: {len(report.findings)} findings, {len(report.patch_suggestions)} patches"
+                )
             except Exception as e:
                 logger.error(f"Agent {agent.name} failed: {e}", exc_info=True)
                 continue
@@ -66,7 +70,9 @@ class AgentCoordinator:
         for report in reports:
             all_findings.extend(report.findings)
 
-        all_findings.sort(key=lambda f: (f.severity.priority(), f.title, f.agent_name), reverse=True)
+        all_findings.sort(
+            key=lambda f: (f.severity.priority(), f.title, f.agent_name), reverse=True
+        )
         return frozenset(all_findings)
 
     def _merge_patches(self, reports: list[AgentReport]) -> frozenset:

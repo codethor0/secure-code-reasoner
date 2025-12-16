@@ -70,17 +70,19 @@ class AgentFinding:
     def __hash__(self) -> int:
         """Make finding hashable by using hashable metadata representation."""
         metadata_hash = getattr(self, "_metadata_hash", ())
-        return hash((
-            self.agent_name,
-            self.severity,
-            self.title,
-            self.description,
-            self.file_path,
-            self.line_number,
-            self.code_snippet,
-            self.recommendation,
-            metadata_hash,
-        ))
+        return hash(
+            (
+                self.agent_name,
+                self.severity,
+                self.title,
+                self.description,
+                self.file_path,
+                self.line_number,
+                self.code_snippet,
+                self.recommendation,
+                metadata_hash,
+            )
+        )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert finding to dictionary for serialization."""
@@ -140,15 +142,17 @@ class PatchSuggestion:
     def __hash__(self) -> int:
         """Make patch suggestion hashable by using hashable metadata representation."""
         metadata_hash = getattr(self, "_metadata_hash", ())
-        return hash((
-            self.file_path,
-            self.original_code,
-            self.suggested_code,
-            self.description,
-            self.line_start,
-            self.line_end,
-            metadata_hash,
-        ))
+        return hash(
+            (
+                self.file_path,
+                self.original_code,
+                self.suggested_code,
+                self.description,
+                self.line_start,
+                self.line_end,
+                metadata_hash,
+            )
+        )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert patch suggestion to dictionary for serialization."""
@@ -186,9 +190,18 @@ class AgentReport:
         """Convert agent report to dictionary for serialization."""
         return {
             "agent_name": self.agent_name,
-            "findings": [finding.to_dict() for finding in sorted(self.findings, key=lambda f: (f.severity.priority(), f.title), reverse=True)],
-            "patch_suggestions": [patch.to_dict() for patch in sorted(self.patch_suggestions, key=lambda p: (p.file_path, p.line_start))],
+            "findings": [
+                finding.to_dict()
+                for finding in sorted(
+                    self.findings, key=lambda f: (f.severity.priority(), f.title), reverse=True
+                )
+            ],
+            "patch_suggestions": [
+                patch.to_dict()
+                for patch in sorted(
+                    self.patch_suggestions, key=lambda p: (p.file_path, p.line_start)
+                )
+            ],
             "summary": self.summary,
             "metadata": self.metadata,
         }
-

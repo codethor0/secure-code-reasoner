@@ -36,7 +36,9 @@ class SecurityReviewerAgent(Agent):
     def analyze(self, fingerprint: RepositoryFingerprint) -> AgentReport:
         """Analyze security risks in fingerprint."""
         if not isinstance(fingerprint, RepositoryFingerprint):
-            raise AgentError(f"SecurityReviewerAgent requires RepositoryFingerprint, got {type(fingerprint)}")
+            raise AgentError(
+                f"SecurityReviewerAgent requires RepositoryFingerprint, got {type(fingerprint)}"
+            )
 
         findings: list[AgentFinding] = []
 
@@ -131,4 +133,3 @@ class SecurityReviewerAgent(Agent):
             RiskSignal.CONFIGURATION_ACCESS: "Secure configuration storage. Avoid hardcoding secrets.",
         }
         return recommendations.get(signal, "Review this code pattern for security implications.")
-

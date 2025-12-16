@@ -40,7 +40,13 @@ def cli(ctx: click.Context, verbose: bool, quiet: bool) -> None:
 @cli.command()
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.option("--output", "-o", type=click.Path(path_type=Path), help="Output file path")
-@click.option("--format", "-f", type=click.Choice(["json", "text"], case_sensitive=False), default="text", help="Output format")
+@click.option(
+    "--format",
+    "-f",
+    type=click.Choice(["json", "text"], case_sensitive=False),
+    default="text",
+    help="Output format",
+)
 def analyze(path: Path, output: Path | None, format: str) -> None:
     """Analyze a repository and generate fingerprint."""
     try:
@@ -63,7 +69,9 @@ def analyze(path: Path, output: Path | None, format: str) -> None:
         if not output:
             click.echo(fingerprint_report)
 
-        agent_report_path = output.parent / f"{output.stem}_agents{output.suffix}" if output else None
+        agent_report_path = (
+            output.parent / f"{output.stem}_agents{output.suffix}" if output else None
+        )
         agent_report_text = reporter.report_agent_findings(agent_report, agent_report_path)
         if not output:
             click.echo("\n")
@@ -78,11 +86,24 @@ def analyze(path: Path, output: Path | None, format: str) -> None:
 @cli.command()
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.option("--output", "-o", type=click.Path(path_type=Path), help="Output file path")
-@click.option("--format", "-f", type=click.Choice(["json", "text"], case_sensitive=False), default="text", help="Output format")
+@click.option(
+    "--format",
+    "-f",
+    type=click.Choice(["json", "text"], case_sensitive=False),
+    default="text",
+    help="Output format",
+)
 @click.option("--timeout", "-t", type=float, default=30.0, help="Execution timeout in seconds")
 @click.option("--allow-network", is_flag=True, help="Allow network access")
 @click.option("--allow-file-write", is_flag=True, help="Allow file write operations")
-def trace(path: Path, output: Path | None, format: str, timeout: float, allow_network: bool, allow_file_write: bool) -> None:
+def trace(
+    path: Path,
+    output: Path | None,
+    format: str,
+    timeout: float,
+    allow_network: bool,
+    allow_file_write: bool,
+) -> None:
     """Trace execution of a script."""
     try:
         tracer = ExecutionTracer(
@@ -107,8 +128,16 @@ def trace(path: Path, output: Path | None, format: str, timeout: float, allow_ne
 
 @cli.command()
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.option("--output", "-o", type=click.Path(path_type=Path), required=True, help="Output file path")
-@click.option("--format", "-f", type=click.Choice(["json", "text"], case_sensitive=False), default="text", help="Output format")
+@click.option(
+    "--output", "-o", type=click.Path(path_type=Path), required=True, help="Output file path"
+)
+@click.option(
+    "--format",
+    "-f",
+    type=click.Choice(["json", "text"], case_sensitive=False),
+    default="text",
+    help="Output format",
+)
 def report(path: Path, output: Path, format: str) -> None:
     """Generate comprehensive report from analysis results."""
     try:

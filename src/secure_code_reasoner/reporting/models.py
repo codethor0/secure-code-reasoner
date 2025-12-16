@@ -28,4 +28,3 @@ class FinalReport:
         if self.execution_trace:
             result["execution_trace"] = self.execution_trace.to_dict()
         return result
-

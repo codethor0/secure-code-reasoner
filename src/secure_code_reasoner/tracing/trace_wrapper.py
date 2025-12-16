@@ -22,7 +22,11 @@ def trace_network_operation(operation: str, address: str, port: int) -> None:
     """Trace a network operation."""
     if os.environ.get("SCR_TRACE_MODE") == "1":
         if os.environ.get("SCR_NO_NETWORK") == "1":
-            print(f"SCR_TRACE:{operation}|addr={address},port={port},blocked=1", file=sys.stderr, flush=True)
+            print(
+                f"SCR_TRACE:{operation}|addr={address},port={port},blocked=1",
+                file=sys.stderr,
+                flush=True,
+            )
         else:
             print(f"SCR_TRACE:{operation}|addr={address},port={port}", file=sys.stderr, flush=True)
 
@@ -44,12 +48,14 @@ def install_trace_hooks() -> None:
 
     try:
         import subprocess
+
         original_subprocess_run = subprocess.run
     except ImportError:
         pass
 
     try:
         import socket
+
         original_socket_create = socket.socket
     except ImportError:
         pass
@@ -68,6 +74,7 @@ def install_trace_hooks() -> None:
     def traced_subprocess_run(*args: Any, **kwargs: Any) -> Any:
         if original_subprocess_run:
             import os as os_module
+
             pid = os_module.getpid()
             cmd_str = str(args[0]) if args else "unknown"
             trace_process_spawn(cmd_str, pid)
@@ -95,13 +102,14 @@ def install_trace_hooks() -> None:
 
     if original_subprocess_run:
         import subprocess
+
         subprocess.run = traced_subprocess_run  # type: ignore[assignment]
 
     if original_socket_create:
         import socket
+
         socket.socket = traced_socket_create  # type: ignore[assignment,misc]
 
 
 if __name__ == "__main__":
     install_trace_hooks()
-

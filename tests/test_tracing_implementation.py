@@ -385,4 +385,3 @@ class TestResourceLimits:
 
         assert elapsed < 1.0
         assert trace.exit_code == -1
-

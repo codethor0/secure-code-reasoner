@@ -9,11 +9,23 @@ from typing import Any
 def _ensure_hashable(cls: type) -> type:
     """Class decorator to ensure __hash__ is not None for frozen dataclasses with dict fields."""
     if cls.__hash__ is None:
-        original_hash = getattr(cls, '__hash__', None)
+        original_hash = getattr(cls, "__hash__", None)
         if original_hash is None:
+
             def __hash__(self: Any) -> int:
                 metadata_hash = getattr(self, "_metadata_hash", ())
-                return hash((self.artifact_type, self.name, self.path, self.start_line, self.end_line, self.risk_signals, metadata_hash))
+                return hash(
+                    (
+                        self.artifact_type,
+                        self.name,
+                        self.path,
+                        self.start_line,
+                        self.end_line,
+                        self.risk_signals,
+                        metadata_hash,
+                    )
+                )
+
             cls.__hash__ = __hash__
     return cls
 
@@ -81,7 +93,17 @@ class CodeArtifact:
     def __hash__(self) -> int:
         """Make artifact hashable by using hashable metadata representation."""
         metadata_hash = getattr(self, "_metadata_hash", ())
-        return hash((self.artifact_type, self.name, self.path, self.start_line, self.end_line, self.risk_signals, metadata_hash))
+        return hash(
+            (
+                self.artifact_type,
+                self.name,
+                self.path,
+                self.start_line,
+                self.end_line,
+                self.risk_signals,
+                metadata_hash,
+            )
+        )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert artifact to dictionary for serialization."""
@@ -91,7 +113,9 @@ class CodeArtifact:
             "path": str(self.path),
             "start_line": self.start_line,
             "end_line": self.end_line,
-            "risk_signals": [signal.value for signal in sorted(self.risk_signals, key=lambda s: s.value)],
+            "risk_signals": [
+                signal.value for signal in sorted(self.risk_signals, key=lambda s: s.value)
+            ],
             "metadata": self.metadata,
         }
 
@@ -206,7 +230,9 @@ class DependencyGraph:
         """Validate and normalize dependency graph."""
         normalized_edges: dict[str, frozenset[str]] = {}
         for source, targets in self.edges.items():
-            normalized_edges[source] = frozenset(targets) if not isinstance(targets, frozenset) else targets
+            normalized_edges[source] = (
+                frozenset(targets) if not isinstance(targets, frozenset) else targets
+            )
         object.__setattr__(self, "edges", normalized_edges)
 
     def get_dependencies(self, artifact_id: str) -> frozenset[str]:
@@ -264,9 +290,14 @@ class RepositoryFingerprint:
             "total_functions": self.total_functions,
             "total_lines": self.total_lines,
             "languages": self.languages,
-            "artifacts": [artifact.to_dict() for artifact in sorted(self.artifacts, key=lambda a: (a.path, a.start_line))],
+            "artifacts": [
+                artifact.to_dict()
+                for artifact in sorted(self.artifacts, key=lambda a: (a.path, a.start_line))
+            ],
             "dependency_graph": self.dependency_graph.to_dict(),
-            "risk_signals": {signal.value: count for signal, count in sorted(self.risk_signals.items(), key=lambda x: x[0].value)},
+            "risk_signals": {
+                signal.value: count
+                for signal, count in sorted(self.risk_signals.items(), key=lambda x: x[0].value)
+            },
             "metadata": self.metadata,
         }
-

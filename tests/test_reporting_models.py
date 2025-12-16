@@ -141,4 +141,3 @@ class TestFinalReport:
         )
         result = final_report.to_dict()
         assert "execution_trace" not in result or result["execution_trace"] is None
-

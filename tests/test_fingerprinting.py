@@ -81,7 +81,10 @@ def test_fingerprint_risk_signals(sample_repo: Path) -> None:
     fingerprinter = Fingerprinter(sample_repo)
     fingerprint = fingerprinter.fingerprint()
 
-    assert RiskSignal.DYNAMIC_CODE_EXECUTION in fingerprint.risk_signals or RiskSignal.PROCESS_EXECUTION in fingerprint.risk_signals
+    assert (
+        RiskSignal.DYNAMIC_CODE_EXECUTION in fingerprint.risk_signals
+        or RiskSignal.PROCESS_EXECUTION in fingerprint.risk_signals
+    )
 
 
 def test_fingerprint_dependency_graph(sample_repo: Path) -> None:

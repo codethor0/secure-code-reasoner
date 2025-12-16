@@ -284,7 +284,11 @@ class TestDependencyGraph:
         fingerprint = fingerprinter.fingerprint()
 
         derived_class = next(
-            (a for a in fingerprint.artifacts if isinstance(a, ClassArtifact) and a.name == "DerivedClass"),
+            (
+                a
+                for a in fingerprint.artifacts
+                if isinstance(a, ClassArtifact) and a.name == "DerivedClass"
+            ),
             None,
         )
         assert derived_class is not None
@@ -294,7 +298,11 @@ class TestDependencyGraph:
         # Dependency graph may not track cross-file inheritance in edges
         # but inheritance is captured in base_classes field
         base_class = next(
-            (a for a in fingerprint.artifacts if isinstance(a, ClassArtifact) and a.name == "BaseClass"),
+            (
+                a
+                for a in fingerprint.artifacts
+                if isinstance(a, ClassArtifact) and a.name == "BaseClass"
+            ),
             None,
         )
         assert base_class is not None
@@ -305,7 +313,11 @@ class TestDependencyGraph:
         fingerprint = fingerprinter.fingerprint()
 
         user_func = next(
-            (a for a in fingerprint.artifacts if isinstance(a, FunctionArtifact) and a.name == "create_object"),
+            (
+                a
+                for a in fingerprint.artifacts
+                if isinstance(a, FunctionArtifact) and a.name == "create_object"
+            ),
             None,
         )
         assert user_func is not None
@@ -331,7 +343,11 @@ class TestDependencyGraph:
         fingerprint = fingerprinter.fingerprint()
 
         method = next(
-            (a for a in fingerprint.artifacts if isinstance(a, FunctionArtifact) and a.name == "method1"),
+            (
+                a
+                for a in fingerprint.artifacts
+                if isinstance(a, FunctionArtifact) and a.name == "method1"
+            ),
             None,
         )
         assert method is not None
@@ -382,7 +398,9 @@ class TestDeterminism:
         fingerprint = fingerprinter.fingerprint()
 
         artifacts_list = list(fingerprint.artifacts)
-        artifacts_sorted = sorted(artifacts_list, key=lambda a: (a.path.as_posix(), a.start_line, a.name))
+        artifacts_sorted = sorted(
+            artifacts_list, key=lambda a: (a.path.as_posix(), a.start_line, a.name)
+        )
 
         assert artifacts_list == artifacts_sorted or set(artifacts_list) == set(artifacts_sorted)
 
@@ -473,4 +491,3 @@ class TestFingerprintOutput:
         assert "total_files" in fingerprint_dict
         assert "artifacts" in fingerprint_dict
         assert "dependency_graph" in fingerprint_dict
-

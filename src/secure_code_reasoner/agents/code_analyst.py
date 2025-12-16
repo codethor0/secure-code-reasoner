@@ -28,7 +28,9 @@ class CodeAnalystAgent(Agent):
     def analyze(self, fingerprint: RepositoryFingerprint) -> AgentReport:
         """Analyze code structure and quality."""
         if not isinstance(fingerprint, RepositoryFingerprint):
-            raise AgentError(f"CodeAnalystAgent requires RepositoryFingerprint, got {type(fingerprint)}")
+            raise AgentError(
+                f"CodeAnalystAgent requires RepositoryFingerprint, got {type(fingerprint)}"
+            )
 
         findings: list[AgentFinding] = []
         total_complexity = 0
@@ -122,4 +124,3 @@ class CodeAnalystAgent(Agent):
         if len(artifact.decorators) > 0:
             complexity += len(artifact.decorators)
         return complexity
-

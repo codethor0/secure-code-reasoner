@@ -143,4 +143,3 @@ def test_agent_report_creation() -> None:
     assert len(report.findings) == 1
     assert report.summary == "Test summary"
     assert "findings" in report.to_dict()
-

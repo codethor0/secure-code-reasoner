@@ -80,9 +80,13 @@ class ExecutionTracer:
             )
             exit_code = -1
             if hasattr(e, "stdout") and e.stdout:
-                stdout = self._truncate_output(e.stdout.decode() if isinstance(e.stdout, bytes) else e.stdout)
+                stdout = self._truncate_output(
+                    e.stdout.decode() if isinstance(e.stdout, bytes) else e.stdout
+                )
             if hasattr(e, "stderr") and e.stderr:
-                stderr = self._truncate_output(e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr)
+                stderr = self._truncate_output(
+                    e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr
+                )
             else:
                 stderr = ""
             stderr += f"\nExecution timed out after {self.timeout}s"
@@ -117,7 +121,9 @@ class ExecutionTracer:
             },
         )
 
-    def _execute_with_tracing(self, script_path: Path, args: list[str]) -> subprocess.CompletedProcess:
+    def _execute_with_tracing(
+        self, script_path: Path, args: list[str]
+    ) -> subprocess.CompletedProcess:
         """Execute script with tracing enabled."""
         python_executable = sys.executable
 
@@ -164,7 +170,10 @@ with open(r'{script_path}', 'r') as f:
     def _truncate_output(self, output: str) -> str:
         """Truncate output to max size."""
         if len(output) > self.max_output_size:
-            return output[: self.max_output_size] + f"\n... (truncated, max {self.max_output_size} bytes)"
+            return (
+                output[: self.max_output_size]
+                + f"\n... (truncated, max {self.max_output_size} bytes)"
+            )
         return output
 
     def _parse_trace_output(self, stdout: str, stderr: str) -> list[TraceEvent]:
@@ -192,7 +201,9 @@ with open(r'{script_path}', 'r') as f:
 
         return events
 
-    def _create_trace_event(self, event_type: TraceEventType, metadata_str: str) -> TraceEvent | None:
+    def _create_trace_event(
+        self, event_type: TraceEventType, metadata_str: str
+    ) -> TraceEvent | None:
         """Create trace event from parsed data."""
         metadata: dict = {}
         file_path: Path | None = None
@@ -241,7 +252,9 @@ with open(r'{script_path}', 'r') as f:
             metadata=metadata,
         )
 
-    def _calculate_risk_score(self, events: list[TraceEvent], exit_code: int | None, execution_time: float) -> RiskScore:
+    def _calculate_risk_score(
+        self, events: list[TraceEvent], exit_code: int | None, execution_time: float
+    ) -> RiskScore:
         """Calculate risk score based on trace events using deterministic rules."""
         score = 0.0
         factors: dict[str, float] = {}
@@ -259,7 +272,11 @@ with open(r'{script_path}', 'r') as f:
             1
             for e in events
             if e.event_type
-            in (TraceEventType.NETWORK_CONNECT, TraceEventType.NETWORK_SEND, TraceEventType.NETWORK_RECEIVE)
+            in (
+                TraceEventType.NETWORK_CONNECT,
+                TraceEventType.NETWORK_SEND,
+                TraceEventType.NETWORK_RECEIVE,
+            )
         )
         if network_events > 0 and not self.allow_network:
             network_risk = min(network_events * 10.0, 40.0)

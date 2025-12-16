@@ -152,12 +152,18 @@ class TestSecurityReviewerAgent:
         with pytest.raises(AgentError):
             agent.analyze("not a fingerprint")
 
-    def test_detects_dynamic_code_execution(self, sample_fingerprint: RepositoryFingerprint) -> None:
+    def test_detects_dynamic_code_execution(
+        self, sample_fingerprint: RepositoryFingerprint
+    ) -> None:
         """Test that dynamic code execution is detected."""
         agent = SecurityReviewerAgent()
         report = agent.analyze(sample_fingerprint)
 
-        eval_findings = [f for f in report.findings if "Dynamic code execution" in f.title or "dynamic_code_execution" in f.title.lower()]
+        eval_findings = [
+            f
+            for f in report.findings
+            if "Dynamic code execution" in f.title or "dynamic_code_execution" in f.title.lower()
+        ]
         # Sample has eval() which triggers dynamic code execution detection
         assert len(eval_findings) > 0
         # Check for critical severity in any finding
@@ -168,7 +174,11 @@ class TestSecurityReviewerAgent:
         agent = SecurityReviewerAgent()
         report = agent.analyze(sample_fingerprint)
 
-        deserialization_findings = [f for f in report.findings if "Deserialization" in f.title or "deserialization" in f.title.lower()]
+        deserialization_findings = [
+            f
+            for f in report.findings
+            if "Deserialization" in f.title or "deserialization" in f.title.lower()
+        ]
         # Sample has pickle.loads() which triggers deserialization detection
         assert len(deserialization_findings) > 0
 
@@ -177,7 +187,11 @@ class TestSecurityReviewerAgent:
         agent = SecurityReviewerAgent()
         report = agent.analyze(sample_fingerprint)
 
-        process_findings = [f for f in report.findings if "Process execution" in f.title or "process_execution" in f.title.lower()]
+        process_findings = [
+            f
+            for f in report.findings
+            if "Process execution" in f.title or "process_execution" in f.title.lower()
+        ]
         # Sample has subprocess.run() which triggers process execution detection
         assert len(process_findings) > 0
 
@@ -186,7 +200,9 @@ class TestSecurityReviewerAgent:
         agent = SecurityReviewerAgent()
         report = agent.analyze(empty_fingerprint)
 
-        assert len(report.findings) == 0 or all(f.severity == Severity.INFO for f in report.findings)
+        assert len(report.findings) == 0 or all(
+            f.severity == Severity.INFO for f in report.findings
+        )
 
 
 class TestPatchAdvisorAgent:
@@ -214,16 +230,28 @@ class TestPatchAdvisorAgent:
         agent = PatchAdvisorAgent()
         report = agent.analyze(sample_fingerprint)
 
-        eval_patches = [p for p in report.patch_suggestions if "eval" in p.description.lower() or "dynamic" in p.description.lower()]
+        eval_patches = [
+            p
+            for p in report.patch_suggestions
+            if "eval" in p.description.lower() or "dynamic" in p.description.lower()
+        ]
         # Sample has eval() which should trigger patch suggestion
         assert len(eval_patches) > 0
 
-    def test_suggests_deserialization_patch(self, sample_fingerprint: RepositoryFingerprint) -> None:
+    def test_suggests_deserialization_patch(
+        self, sample_fingerprint: RepositoryFingerprint
+    ) -> None:
         """Test that deserialization patches are suggested."""
         agent = PatchAdvisorAgent()
         report = agent.analyze(sample_fingerprint)
 
-        deserialization_patches = [p for p in report.patch_suggestions if "deserialization" in p.description.lower() or "pickle" in p.description.lower() or "unsafe" in p.description.lower()]
+        deserialization_patches = [
+            p
+            for p in report.patch_suggestions
+            if "deserialization" in p.description.lower()
+            or "pickle" in p.description.lower()
+            or "unsafe" in p.description.lower()
+        ]
         # Sample has pickle.loads() which should trigger patch suggestion
         assert len(deserialization_patches) > 0
 
@@ -388,10 +416,14 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator(agents)
         report = coordinator.review(sample_fingerprint)
 
-        findings_list = sorted(report.findings, key=lambda f: (f.severity.priority(), f.title), reverse=True)
+        findings_list = sorted(
+            report.findings, key=lambda f: (f.severity.priority(), f.title), reverse=True
+        )
         assert list(report.findings) == findings_list or set(report.findings) == set(findings_list)
 
-    def test_patches_sorted_deterministically(self, sample_fingerprint: RepositoryFingerprint) -> None:
+    def test_patches_sorted_deterministically(
+        self, sample_fingerprint: RepositoryFingerprint
+    ) -> None:
         """Test that patches are sorted deterministically."""
         agents = [
             CodeAnalystAgent(),
@@ -402,8 +434,13 @@ class TestAgentCoordinator:
         report = coordinator.review(sample_fingerprint)
 
         if report.patch_suggestions:
-            patches_list = sorted(report.patch_suggestions, key=lambda p: (p.file_path.as_posix(), p.line_start, p.description))
-            assert list(report.patch_suggestions) == patches_list or set(report.patch_suggestions) == set(patches_list)
+            patches_list = sorted(
+                report.patch_suggestions,
+                key=lambda p: (p.file_path.as_posix(), p.line_start, p.description),
+            )
+            assert list(report.patch_suggestions) == patches_list or set(
+                report.patch_suggestions
+            ) == set(patches_list)
 
     def test_no_shared_state(self, sample_fingerprint: RepositoryFingerprint) -> None:
         """Test that agents don't share mutable state."""
@@ -415,7 +452,9 @@ class TestAgentCoordinator:
 
         assert report1.agent_name != report2.agent_name
         assert report1.findings != report2.findings
-        assert len(report1.findings) != len(report2.findings) or report1.findings != report2.findings
+        assert (
+            len(report1.findings) != len(report2.findings) or report1.findings != report2.findings
+        )
 
     def test_invalid_agent_return_type(self, sample_fingerprint: RepositoryFingerprint) -> None:
         """Test that coordinator handles invalid agent return types."""
@@ -432,4 +471,3 @@ class TestAgentCoordinator:
 
         assert report.metadata["agents_run"] == 1
         assert len(report.findings) > 0
-

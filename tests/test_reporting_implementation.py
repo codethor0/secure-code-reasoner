@@ -131,7 +131,9 @@ class TestTextFormatter:
 class TestReporter:
     """Tests for Reporter."""
 
-    def test_reporter_fingerprint(self, sample_fingerprint: RepositoryFingerprint, tmp_path: Path) -> None:
+    def test_reporter_fingerprint(
+        self, sample_fingerprint: RepositoryFingerprint, tmp_path: Path
+    ) -> None:
         """Test reporter for fingerprint."""
         reporter = Reporter(TextFormatter())
         output_path = tmp_path / "report.txt"
@@ -158,11 +160,12 @@ class TestReporter:
         assert output_path.exists()
         assert len(report) > 0
 
-    def test_reporter_creates_parent_dirs(self, sample_fingerprint: RepositoryFingerprint, tmp_path: Path) -> None:
+    def test_reporter_creates_parent_dirs(
+        self, sample_fingerprint: RepositoryFingerprint, tmp_path: Path
+    ) -> None:
         """Test reporter creates parent directories."""
         reporter = Reporter(TextFormatter())
         output_path = tmp_path / "nested" / "dir" / "report.txt"
 
         reporter.report_fingerprint(sample_fingerprint, output_path)
         assert output_path.exists()
-

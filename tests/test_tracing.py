@@ -79,7 +79,11 @@ def test_risk_score_calculation() -> None:
 
     assert risk_score.score > 0
     assert risk_score.max_score == 100.0
-    assert "file_operations" in risk_score.factors or "process_execution" in risk_score.factors or "unauthorized_file_operations" in risk_score.factors
+    assert (
+        "file_operations" in risk_score.factors
+        or "process_execution" in risk_score.factors
+        or "unauthorized_file_operations" in risk_score.factors
+    )
 
 
 def test_trace_event_creation() -> None:
@@ -121,4 +125,3 @@ def test_execution_trace_creation() -> None:
     assert trace.exit_code == 0
     assert trace.risk_score.score == 50.0
     assert "events" in trace.to_dict()
-

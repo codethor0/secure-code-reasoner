@@ -188,7 +188,9 @@ class PythonASTVisitor(ast.NodeVisitor):
                 signals.add(RiskSignal.DESERIALIZATION)
         return frozenset(signals)
 
-    def _extract_function_risk_signals(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> frozenset[RiskSignal]:
+    def _extract_function_risk_signals(
+        self, node: ast.FunctionDef | ast.AsyncFunctionDef
+    ) -> frozenset[RiskSignal]:
         """Extract risk signals from function definition."""
         signals: set[RiskSignal] = set()
         for decorator in node.decorator_list:
@@ -202,17 +204,29 @@ class PythonASTVisitor(ast.NodeVisitor):
         func_lower = func_name.lower()
         if any(op in func_lower for op in ["open", "read", "write", "remove", "delete", "unlink"]):
             self.risk_signals.add(RiskSignal.FILE_OPERATIONS)
-        if any(op in func_lower for op in ["socket", "request", "http", "urllib", "connect", "urlopen"]):
+        if any(
+            op in func_lower for op in ["socket", "request", "http", "urllib", "connect", "urlopen"]
+        ):
             self.risk_signals.add(RiskSignal.NETWORK_ACCESS)
-        if any(op in func_lower for op in ["exec", "eval", "compile", "run", "popen", "call", "system"]):
+        if any(
+            op in func_lower for op in ["exec", "eval", "compile", "run", "popen", "call", "system"]
+        ):
             self.risk_signals.add(RiskSignal.PROCESS_EXECUTION)
-        if any(op in func_lower for op in ["crypto", "hash", "encrypt", "decrypt", "sign", "hmac", "sha", "md5"]):
+        if any(
+            op in func_lower
+            for op in ["crypto", "hash", "encrypt", "decrypt", "sign", "hmac", "sha", "md5"]
+        ):
             self.risk_signals.add(RiskSignal.CRYPTOGRAPHIC_OPERATIONS)
-        if any(op in func_lower for op in ["pickle", "marshal", "yaml.load", "json.loads", "loads"]):
+        if any(
+            op in func_lower for op in ["pickle", "marshal", "yaml.load", "json.loads", "loads"]
+        ):
             self.risk_signals.add(RiskSignal.DESERIALIZATION)
         if any(op in func_lower for op in ["eval", "exec", "__import__"]):
             self.risk_signals.add(RiskSignal.DYNAMIC_CODE_EXECUTION)
-        if any(op in func_lower for op in ["getattr", "setattr", "hasattr", "__getattribute__", "getattribute"]):
+        if any(
+            op in func_lower
+            for op in ["getattr", "setattr", "hasattr", "__getattribute__", "getattribute"]
+        ):
             self.risk_signals.add(RiskSignal.REFLECTION)
         if any(op in func_lower for op in ["config", "settings", "env", "getenv", "environ"]):
             self.risk_signals.add(RiskSignal.CONFIGURATION_ACCESS)
@@ -222,7 +236,17 @@ class Fingerprinter:
     """Generates deterministic fingerprints of code repositories."""
 
     SUPPORTED_EXTENSIONS = {".py"}
-    IGNORE_DIRS = {".git", "__pycache__", ".pytest_cache", "node_modules", ".venv", "venv", "env", ".mypy_cache", ".ruff_cache"}
+    IGNORE_DIRS = {
+        ".git",
+        "__pycache__",
+        ".pytest_cache",
+        "node_modules",
+        ".venv",
+        "venv",
+        "env",
+        ".mypy_cache",
+        ".ruff_cache",
+    }
     IGNORE_FILES = {".gitignore", ".gitattributes", ".DS_Store"}
 
     def __init__(self, repository_path: Path) -> None:
@@ -266,7 +290,9 @@ class Fingerprinter:
         total_classes = sum(1 for a in artifacts if isinstance(a, ClassArtifact))
         total_functions = sum(1 for a in artifacts if isinstance(a, FunctionArtifact))
 
-        artifacts_tuple = tuple(sorted(artifacts, key=lambda a: (a.path.as_posix(), a.start_line, a.name)))
+        artifacts_tuple = tuple(
+            sorted(artifacts, key=lambda a: (a.path.as_posix(), a.start_line, a.name))
+        )
         try:
             artifacts_set = frozenset(artifacts_tuple)
         except TypeError:
@@ -403,14 +429,18 @@ class Fingerprinter:
 
         return DependencyGraph(edges=normalized_edges)
 
-    def _get_file_id_for_artifact(self, artifact: CodeArtifact, file_artifacts: list[FileArtifact]) -> str | None:
+    def _get_file_id_for_artifact(
+        self, artifact: CodeArtifact, file_artifacts: list[FileArtifact]
+    ) -> str | None:
         """Find the file artifact ID that contains this artifact."""
         for file_artifact in file_artifacts:
             if file_artifact.path == artifact.path:
                 return self._get_artifact_id(file_artifact)
         return None
 
-    def _find_class_id(self, class_name: str, class_artifacts: list[ClassArtifact], file_path: Path) -> str | None:
+    def _find_class_id(
+        self, class_name: str, class_artifacts: list[ClassArtifact], file_path: Path
+    ) -> str | None:
         """Find class artifact ID by name in the same file."""
         for class_artifact in class_artifacts:
             if class_artifact.name == class_name and class_artifact.path == file_path:
@@ -421,7 +451,9 @@ class Fingerprinter:
         """Generate deterministic ID for an artifact."""
         return f"{artifact.path.as_posix()}:{artifact.artifact_type.value}:{artifact.name}:{artifact.start_line}"
 
-    def _compute_fingerprint_hash(self, artifacts: list[CodeArtifact], graph: DependencyGraph) -> str:
+    def _compute_fingerprint_hash(
+        self, artifacts: list[CodeArtifact], graph: DependencyGraph
+    ) -> str:
         """Compute deterministic hash of fingerprint."""
         hash_input: list[str] = []
 

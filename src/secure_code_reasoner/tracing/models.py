@@ -61,17 +61,19 @@ class TraceEvent:
     def __hash__(self) -> int:
         """Make trace event hashable by using hashable metadata representation."""
         metadata_hash = getattr(self, "_metadata_hash", ())
-        return hash((
-            self.event_type,
-            self.timestamp,
-            self.file_path,
-            self.process_id,
-            self.network_address,
-            self.network_port,
-            self.command,
-            self.module_name,
-            metadata_hash,
-        ))
+        return hash(
+            (
+                self.event_type,
+                self.timestamp,
+                self.file_path,
+                self.process_id,
+                self.network_address,
+                self.network_port,
+                self.command,
+                self.module_name,
+                metadata_hash,
+            )
+        )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert trace event to dictionary for serialization."""
@@ -156,4 +158,3 @@ class ExecutionTrace:
             "stderr": self.stderr,
             "metadata": self.metadata,
         }
-

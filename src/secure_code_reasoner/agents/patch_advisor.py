@@ -25,7 +25,9 @@ class PatchAdvisorAgent(Agent):
     def analyze(self, fingerprint: RepositoryFingerprint) -> AgentReport:
         """Analyze fingerprint and suggest patches."""
         if not isinstance(fingerprint, RepositoryFingerprint):
-            raise AgentError(f"PatchAdvisorAgent requires RepositoryFingerprint, got {type(fingerprint)}")
+            raise AgentError(
+                f"PatchAdvisorAgent requires RepositoryFingerprint, got {type(fingerprint)}"
+            )
 
         findings: list[AgentFinding] = []
         patch_suggestions: list[PatchSuggestion] = []
@@ -101,7 +103,10 @@ class PatchAdvisorAgent(Agent):
             description="Replace eval() with safer JSON parsing or explicit parsing logic. Always validate input before parsing.",
             line_start=artifact.start_line,
             line_end=artifact.end_line,
-            metadata={"risk_signal": RiskSignal.DYNAMIC_CODE_EXECUTION.value, "artifact_name": artifact.name},
+            metadata={
+                "risk_signal": RiskSignal.DYNAMIC_CODE_EXECUTION.value,
+                "artifact_name": artifact.name,
+            },
         )
 
     def _suggest_safe_deserialization(self, artifact: CodeArtifact) -> PatchSuggestion | None:
@@ -125,7 +130,10 @@ class PatchAdvisorAgent(Agent):
             description="Use restricted unpickler with allowlist to prevent arbitrary code execution. Only allow deserialization of known safe classes.",
             line_start=artifact.start_line,
             line_end=artifact.end_line,
-            metadata={"risk_signal": RiskSignal.DESERIALIZATION.value, "artifact_name": artifact.name},
+            metadata={
+                "risk_signal": RiskSignal.DESERIALIZATION.value,
+                "artifact_name": artifact.name,
+            },
         )
 
     def _suggest_parameter_refactoring(self, artifact: FunctionArtifact) -> PatchSuggestion | None:
@@ -149,4 +157,3 @@ class PatchAdvisorAgent(Agent):
             line_end=artifact.end_line,
             metadata={"parameter_count": len(artifact.parameters), "artifact_name": artifact.name},
         )
-

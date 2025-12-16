@@ -149,4 +149,3 @@ def test_reporter_trace(sample_trace: ExecutionTrace, tmp_path: Path) -> None:
     report = reporter.report_trace(sample_trace, output_path)
     assert output_path.exists()
     assert len(report) > 0
-
