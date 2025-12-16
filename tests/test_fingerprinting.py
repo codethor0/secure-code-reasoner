@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+
 from secure_code_reasoner.exceptions import FingerprintingError
 from secure_code_reasoner.fingerprinting import Fingerprinter
 from secure_code_reasoner.fingerprinting.models import RiskSignal

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+
 from secure_code_reasoner.tracing.models import (
     ExecutionTrace,
     RiskScore,

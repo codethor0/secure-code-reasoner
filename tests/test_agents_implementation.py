@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+
 from secure_code_reasoner.agents import (
     AgentCoordinator,
     CodeAnalystAgent,
