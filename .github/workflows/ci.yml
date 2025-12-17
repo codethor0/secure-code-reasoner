@@ -117,7 +117,7 @@ jobs:
           # Check for unexpected contexts
           UNEXPECTED=""
           for check in $CHECK_RUNS; do
-            if [[ "$check" == "semantic-release" ]] || [[ "$check" == "CodeQL Analysis (python)" ]]; then
+            if [[ "$check" == "semantic-release" ]] || [[ "$check" == "CodeQL Analysis (python)" ]] || [[ "$check" == "CI Guardrail" ]]; then
               continue
             fi
             FOUND=0
