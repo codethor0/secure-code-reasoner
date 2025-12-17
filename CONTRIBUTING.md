@@ -2,6 +2,36 @@
 
 Thank you for your interest in contributing to Secure Code Reasoner! This document provides guidelines and instructions for contributing.
 
+## Verification Policy
+
+Verification is mandatory for all changes. This ensures code executes as claimed and prevents regressions.
+
+### Verification Requirements
+
+- **Agent Output**: Agent output is not trusted without execution artifacts
+- **Scripts Over Prose**: `scripts/verify.sh` is the authoritative verification source
+- **CI as Arbiter**: CI runs verification automatically; local verification should match
+- **Evidence Artifacts**: All verification steps must produce evidence files
+- **Exit Codes**: Verification must exit with code 0 for success, non-zero for failure
+
+### Running Verification
+
+```bash
+scripts/verify.sh
+```
+
+The script verifies:
+- Installation works
+- CLI commands respond
+- Functional analysis executes
+- Tests pass with correct count
+- Forbidden files are absent
+- CI contexts are valid
+
+### Verification Contract
+
+See [VERIFY.md](../VERIFY.md) for the complete verification contract defining what "verified" means.
+
 ## Code of Conduct
 
 This project adheres to a Code of Conduct that all contributors are expected to follow. Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.

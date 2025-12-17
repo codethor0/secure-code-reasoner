@@ -1,0 +1,2 @@
+# Demo repository dependencies
+# This is a minimal example with no external dependencies

@@ -114,6 +114,9 @@ jobs:
           CHECK_RUNS=$(gh api repos/${{ github.repository }}/commits/$COMMIT_SHA/check-runs --jq '.check_runs[] | .name' | sort -u)
           
           # Only check for explicitly forbidden contexts that should never appear on main
+          # This guardrail prevents release workflows from blocking main branch pushes
+          # Forbidden file patterns (*PROMPT*.md, *EXECUTION*.md, *AUTOMATION*.md) are
+          # prevented via repository cleanup policies, not CI checks
           FORBIDDEN_CONTEXTS=("Release" "semantic-release")
           FOUND_FORBIDDEN=""
           
@@ -133,4 +136,22 @@ jobs:
           fi
           
           echo "No forbidden status contexts detected"
+
+  verify-contract:
+    name: Verify Contract
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run verification script
+        run: |
+          chmod +x scripts/verify.sh
+          scripts/verify.sh
 
