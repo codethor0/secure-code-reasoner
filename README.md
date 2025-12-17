@@ -20,30 +20,28 @@ Secure Code Reasoner is currently distributed via source installation and Docker
 - **Docker**: Published via GitHub Container Registry
 - **Releases**: GitHub releases are authoritative
 
-PyPI publishing will be enabled once the public API is finalized.
-
 ## PyPI Publishing Status
 
-Secure Code Reasoner is prepared for PyPI publication but NOT ENABLED. The project metadata in `pyproject.toml` is complete and validated:
+Secure Code Reasoner is prepared for PyPI publication. The project metadata in `pyproject.toml` is complete and validated:
 
 - Package name: `secure-code-reasoner`
-- Version: `0.1.0`
+- Version: `0.1.0` (latest stable), pre-releases available (v0.1.1-rc*)
 - Python version requirement: `>=3.11`
 - License: MIT
 - Dependencies: Declared and pinned
 
-### Publication Gates
+### Publication Status
 
-PyPI publishing is gated by verification to ensure only verified code is distributed:
+PyPI publishing is currently **NOT PUBLISHED**. The upload workflow is enabled and gated by verification:
 
 - **Verification Required**: `scripts/verify.sh` must pass before any publish attempt
 - **CI Enforcement**: Publishing only occurs via GitHub Actions CI workflow
 - **Signed Tags Only**: Only signed git tags matching `v*.*.*` can trigger publication
-- **Dry-Run Mode**: Current workflow runs in dry-run mode (no actual upload)
+- **Current State**: Upload workflow is active; publication attempts require all verification gates to pass
 
 See [VERIFY.md](VERIFY.md) for complete PyPI publishing prerequisites and failure conditions.
 
-The PyPI badge reflects "not published" status. Publication will be enabled when verification gates are confirmed and explicit approval is given.
+The PyPI badge reflects "not published" status. Publication will occur automatically when a signed tag triggers the workflow and all verification gates pass.
 
 ## Overview
 
