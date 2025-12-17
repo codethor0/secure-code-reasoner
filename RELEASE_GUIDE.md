@@ -63,18 +63,6 @@ BREAKING CHANGE: change AgentReport API signature
 
 If you need to create a release manually:
 
-### Using MASTER_RELEASE_PROMPT.md
-
-Say: "Run release workflow for vX.Y.Z"
-
-The automation will:
-1. Create release branch
-2. Update version
-3. Generate release notes
-4. Create tag
-5. Push everything
-6. Prepare GitHub release
-
 ### Manual Steps
 
 1. **Create Release Branch**:
@@ -222,5 +210,4 @@ Examples:
 - [Semantic Versioning](https://semver.org/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Release Documentation](https://python-semantic-release.readthedocs.io/)
-- [MASTER_RELEASE_PROMPT.md](MASTER_RELEASE_PROMPT.md) - Automated release prompt
 

@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/codethor0/secure-code-reasoner?include_prereleases&sort=semver)](https://github.com/codethor0/secure-code-reasoner/releases)
 [![License](https://img.shields.io/github/license/codethor0/secure-code-reasoner)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![PyPI](https://img.shields.io/pypi/v/secure-code-reasoner)](https://pypi.org/project/secure-code-reasoner/)
+[![PyPI](https://img.shields.io/pypi/v/secure-code-reasoner?label=PyPI&color=inactive)](https://pypi.org/project/secure-code-reasoner/) (Not published)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fcodethor0%2Fsecure--code--reasoner-blue)](https://github.com/codethor0/secure-code-reasoner/pkgs/container/secure-code-reasoner)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Type checking: mypy](https://img.shields.io/badge/type%20checking-mypy-blue)](http://mypy-lang.org/)
