@@ -49,7 +49,7 @@ Secure Code Reasoner is designed for researchers and developers who need to unde
 
 - **Repository Fingerprinting**: Semantic analysis of code structure, dependency mapping, and risk signal detection
 - **Multi-Agent Review Framework**: Coordinated analysis through specialized agents for code quality, security, and patch suggestions
-- **Controlled Execution Tracing**: Sandboxed code execution with comprehensive trace capture and risk scoring
+- **Controlled Execution Tracing**: Code execution with Python-level restrictions (not OS-level sandboxing) and comprehensive trace capture and risk scoring
 - **Structured Reporting**: JSON and human-readable text output formats
 
 ## Architecture
@@ -228,17 +228,17 @@ What Secure Code Reasoner does NOT do:
 - Does not modify or remediate code automatically
 - Does not provide production-grade security sandboxing (subprocess isolation is advisory)
 - Does not execute untrusted code without explicit user consent
-- Does not make network calls unless explicitly enabled via --allow-network
-- Does not write files unless explicitly enabled via --allow-file-write
-- Does not use shell=True in subprocess calls
-- Does not bypass path validation (all paths are resolved and validated)
+- Attempts to block network calls via Python-level interception unless explicitly enabled via --allow-network. Bypasses are possible (C extensions, ctypes, importing socket before hooks).
+- Attempts to block file writes via Python-level interception of `open()` unless explicitly enabled via --allow-file-write. Bypasses are possible (os.open(), pathlib, C extensions).
+- Uses subprocess.run() with command lists (not shell=True) in current implementation
+- Path validation: All paths are resolved and validated, but scripts may access parent directories if file writes are enabled
 
 Default restrictions:
 
-- Network access: Disabled by default
-- File writes: Disabled by default
+- Network access: Disabled by default (Python-level interception, bypasses possible)
+- File writes: Disabled by default (Python-level interception of `open()`, bypasses possible)
 - Execution timeout: 30 seconds by default
-- Path traversal: Prevented via Path.resolve() and existence checks
+- Path traversal: Partially prevented via Path.resolve() and existence checks. Scripts may access parent directories if file writes are enabled.
 
 ## Limitations
 

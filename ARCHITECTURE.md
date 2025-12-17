@@ -157,7 +157,7 @@ Coordinates multiple specialized analysis agents, merges their findings, and pro
 ### 3. Tracing Subsystem
 
 #### Purpose
-Executes untrusted code in a controlled environment, captures execution traces, and calculates risk scores.
+Executes code in a subprocess with Python-level restrictions (advisory only, not OS-level sandboxing), captures execution traces, and calculates risk scores.
 
 #### Responsibilities
 - Execute code in subprocess with resource limits
@@ -415,8 +415,8 @@ CLI Subsystem (stdout)
 
 ### Sandboxing
 
-- Tracing subsystem uses subprocess isolation (not guaranteed security)
-- Environment variable restrictions are advisory only
+- Tracing subsystem uses subprocess isolation with Python-level restrictions (advisory only, not guaranteed security)
+- Environment variable restrictions are advisory only and bypassable
 - No OS-level sandboxing or containerization
 - Users must not execute untrusted code without additional security measures
 

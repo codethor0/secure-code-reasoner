@@ -2,6 +2,8 @@
 
 This document defines what "verified" means for Secure Code Reasoner. It is a contract, not documentation.
 
+**Important**: "Verified" means the code executes according to documented behavior and passes defined verification steps. It does not mean the software is secure, hardened, or safe against malicious input. Verification is a process guarantee, not a security promise.
+
 ## Purpose
 
 Verification ensures that:
