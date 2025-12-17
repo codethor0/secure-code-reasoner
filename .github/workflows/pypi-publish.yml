@@ -15,14 +15,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify tag is signed
+      - name: Verify tag is signed (via GitHub API)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
-          if ! git tag -v "$TAG_NAME" > /dev/null 2>&1; then
-            echo "ERROR: Tag $TAG_NAME is not signed or signature verification failed"
+          
+          # Get tag ref to find tag object SHA
+          TAG_REF_SHA=$(gh api repos/${{ github.repository }}/git/ref/tags/$TAG_NAME --jq '.object.sha')
+          if [ -z "$TAG_REF_SHA" ]; then
+            echo "ERROR: Could not resolve tag $TAG_NAME"
             exit 1
           fi
-          echo "Tag $TAG_NAME signature verified"
+          
+          # Get tag object and verify signature via GitHub API
+          TAG_VERIFICATION=$(gh api repos/${{ github.repository }}/git/tags/$TAG_REF_SHA --jq '{verified: .verification.verified, reason: .verification.reason}')
+          VERIFIED=$(echo "$TAG_VERIFICATION" | jq -r '.verified')
+          REASON=$(echo "$TAG_VERIFICATION" | jq -r '.reason')
+          
+          if [ "$VERIFIED" != "true" ]; then
+            echo "ERROR: Tag $TAG_NAME signature verification failed"
+            echo "GitHub verification status: verified=$VERIFIED, reason=$REASON"
+            exit 1
+          fi
+          
+          echo "Tag $TAG_NAME signature verified via GitHub API (reason: $REASON)"
 
       - name: Verify working tree is clean
         run: |
