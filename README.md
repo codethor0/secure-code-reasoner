@@ -3,13 +3,24 @@
 [![Release](https://img.shields.io/github/v/release/codethor0/secure-code-reasoner?include_prereleases&sort=semver)](https://github.com/codethor0/secure-code-reasoner/releases)
 [![License](https://img.shields.io/github/license/codethor0/secure-code-reasoner)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![PyPI](https://img.shields.io/pypi/v/secure-code-reasoner?label=PyPI&color=inactive)](https://pypi.org/project/secure-code-reasoner/) (Not published)
+[![CI](https://img.shields.io/github/actions/workflow/status/codethor0/secure-code-reasoner/ci.yml?branch=main)](https://github.com/codethor0/secure-code-reasoner/actions)
+[![PyPI](https://img.shields.io/badge/PyPI-not%20published-lightgrey)](https://pypi.org/project/secure-code-reasoner/)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fcodethor0%2Fsecure--code--reasoner-blue)](https://github.com/codethor0/secure-code-reasoner/pkgs/container/secure-code-reasoner)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Type checking: mypy](https://img.shields.io/badge/type%20checking-mypy-blue)](http://mypy-lang.org/)
 [![Linting: ruff](https://img.shields.io/badge/linting-ruff-yellow)](https://github.com/astral-sh/ruff)
 
 A research-oriented, developer-focused toolkit for analyzing, fingerprinting, and reviewing code repositories via semantic and execution-based analysis.
+
+## Distribution Status
+
+Secure Code Reasoner is currently distributed via source installation and Docker images.
+
+- **PyPI**: Not published yet
+- **Docker**: Published via GitHub Container Registry
+- **Releases**: GitHub releases are authoritative
+
+PyPI publishing will be enabled once the public API is finalized.
 
 ## Overview
 
@@ -56,6 +67,22 @@ git clone https://github.com/codethor0/secure-code-reasoner.git
 cd secure-code-reasoner
 pip install -e ".[dev]"
 ```
+
+### Run with Docker
+
+A prebuilt container image is available via GitHub Container Registry.
+
+```bash
+docker pull ghcr.io/codethor0/secure-code-reasoner:latest
+```
+
+Example usage:
+
+```bash
+docker run --rm -v "$(pwd):/work" ghcr.io/codethor0/secure-code-reasoner scr analyze /work
+```
+
+The container runs with restricted defaults and is intended for local analysis workflows.
 
 ## Usage
 
