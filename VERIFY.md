@@ -67,9 +67,47 @@ These differences are expected and acceptable:
 These are explicitly not required for verification:
 
 - **Docker Runtime**: Docker daemon availability is not required
-- **PyPI Publication**: PyPI publishing is not required
+- **PyPI Publication**: PyPI publishing is not required for verification
 - **External Repositories**: Analysis of external repos is optional
 - **Performance Benchmarks**: Specific performance numbers are not guaranteed
+
+## PyPI Publishing Prerequisites
+
+PyPI publishing is prepared but NOT ENABLED. Before any PyPI publication can occur, the following MUST be satisfied:
+
+1. **Signed Tag Requirement**: Publication MUST only occur from signed git tags matching pattern `v*.*.*`
+2. **Verification Gate**: `scripts/verify.sh` MUST pass with exit code 0 before any publish attempt
+3. **CI State**: All required CI checks (Lint, Test 3.11, Test 3.12, Type Check) MUST be green
+4. **Working Tree**: Working tree MUST be clean (no uncommitted changes)
+5. **Forbidden Files**: Zero forbidden files MUST exist (see Required Invariants)
+6. **CI Enforcement**: Publication MUST occur only via CI workflow, never locally
+7. **Dry-Run First**: First publication attempt MUST use dry-run mode to verify build artifacts
+
+### Environments Allowed to Publish
+
+- **GitHub Actions CI**: Only when triggered by signed tag push
+- **Verification**: Must pass `verify-before-publish` job before `build-and-test-publish` job
+
+### Environments NOT Allowed to Publish
+
+- **Local development environments**: MUST NOT publish (verification cannot be enforced)
+- **Sandboxed environments**: MUST NOT publish (network limitations prevent verification)
+- **Manual twine upload**: MUST NOT be used (bypasses CI gates)
+- **Unsigned tags**: MUST NOT trigger publication
+
+### Publication Failure Conditions
+
+If any of the following occur, publication MUST be blocked:
+
+- Verification script exits non-zero
+- Required CI checks are not green
+- Tag signature verification fails
+- Working tree is not clean
+- Forbidden files are detected
+- Package build fails
+- Package metadata validation fails
+
+These conditions ensure that "if it is published, it was verified."
 
 ## Verification Script
 
