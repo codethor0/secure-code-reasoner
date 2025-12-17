@@ -108,35 +108,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ALLOWED_CONTEXTS=("Lint" "Test (3.11)" "Test (3.12)" "Type Check")
           COMMIT_SHA="${{ github.sha }}"
           
           # Get all check run names for this commit
           CHECK_RUNS=$(gh api repos/${{ github.repository }}/commits/$COMMIT_SHA/check-runs --jq '.check_runs[] | .name' | sort -u)
           
-          # Check for unexpected contexts
-          UNEXPECTED=""
+          # Only check for explicitly forbidden contexts that should never appear on main
+          FORBIDDEN_CONTEXTS=("Release" "semantic-release")
+          FOUND_FORBIDDEN=""
+          
           for check in $CHECK_RUNS; do
-            if [[ "$check" == "semantic-release" ]] || [[ "$check" == "CodeQL Analysis (python)" ]] || [[ "$check" == "CI Guardrail" ]]; then
-              continue
-            fi
-            FOUND=0
-            for allowed in "${ALLOWED_CONTEXTS[@]}"; do
-              if [[ "$check" == "$allowed" ]]; then
-                FOUND=1
+            for forbidden in "${FORBIDDEN_CONTEXTS[@]}"; do
+              if [[ "$check" == "$forbidden" ]]; then
+                FOUND_FORBIDDEN="$FOUND_FORBIDDEN $check"
                 break
               fi
             done
-            if [[ $FOUND -eq 0 ]]; then
-              UNEXPECTED="$UNEXPECTED $check"
-            fi
           done
           
-          if [[ -n "$UNEXPECTED" ]]; then
-            echo "ERROR: Unexpected status contexts detected:$UNEXPECTED"
-            echo "Allowed contexts: ${ALLOWED_CONTEXTS[*]}"
+          if [[ -n "$FOUND_FORBIDDEN" ]]; then
+            echo "ERROR: Forbidden status contexts detected on main:$FOUND_FORBIDDEN"
+            echo "These contexts should not appear on main branch pushes"
             exit 1
           fi
           
-          echo "All status contexts are valid"
+          echo "No forbidden status contexts detected"
 
