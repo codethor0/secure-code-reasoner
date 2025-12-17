@@ -133,18 +133,13 @@ jobs:
         run: |
           python -m twine check dist/*
 
-      - name: Dry-run upload (NO ACTUAL PUBLISH)
+      - name: Upload to PyPI
         run: |
-          echo "DRY-RUN MODE: This would upload to PyPI but is disabled"
-          echo "To enable publishing, remove this step and uncomment the real upload step below"
-          echo "Package built successfully:"
-          ls -lh dist/
-          # Uncomment below to enable actual publishing:
-          # python -m twine upload dist/* \
-          #   --repository-url https://upload.pypi.org/legacy/ \
-          #   --username __token__ \
-          #   --password ${{ secrets.PYPI_API_TOKEN }} \
-          #   --non-interactive
+          python -m twine upload dist/* \
+            --repository-url https://upload.pypi.org/legacy/ \
+            --username __token__ \
+            --password ${{ secrets.PYPI_API_TOKEN }} \
+            --non-interactive
         env:
           PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
