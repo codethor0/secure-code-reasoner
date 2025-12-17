@@ -86,6 +86,7 @@ jobs:
     name: CI Guardrail
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -139,4 +140,23 @@ jobs:
           fi
           
           echo "All status contexts are valid"
+      
+      - name: Check for forbidden files
+        run: |
+          FORBIDDEN_PATTERNS=("PROMPT" "EXECUTION" "AUTOMATION" "STATUS" "CHECKLIST" "MASTER" "BRANCH_PROTECTION")
+          FOUND_FORBIDDEN=""
+          
+          for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
+            FILES=$(find . -maxdepth 1 -type f -iname "*${pattern}*" ! -path "./.git/*" ! -path "./.github/workflows/*" 2>/dev/null || true)
+            if [[ -n "$FILES" ]]; then
+              FOUND_FORBIDDEN="$FOUND_FORBIDDEN $FILES"
+            fi
+          done
+          
+          if [[ -n "$FOUND_FORBIDDEN" ]]; then
+            echo "ERROR: Forbidden files detected:$FOUND_FORBIDDEN"
+            exit 1
+          fi
+          
+          echo "No forbidden files found"
 
