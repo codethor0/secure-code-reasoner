@@ -126,6 +126,8 @@ Verification runs automatically:
 - On release tags (blocking, must pass)
 - Via `verify-contract` CI job
 
+**Note**: Verification is enforced in CI workflows but not guaranteed by branch protection rules. Branch protection does not currently require status checks to pass. Administrative users can bypass branch protection rules. This repository assumes maintainers act in good faith. Verification guarantees apply to non-bypassed CI paths.
+
 ## Release Gate
 
 Before any release:

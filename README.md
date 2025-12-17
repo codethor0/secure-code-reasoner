@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/codethor0/secure-code-reasoner?include_prereleases&sort=semver)](https://github.com/codethor0/secure-code-reasoner/releases)
 [![License](https://img.shields.io/github/license/codethor0/secure-code-reasoner)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![CI](https://img.shields.io/github/actions/workflow/status/codethor0/secure-code-reasoner/ci.yml?branch=main)](https://github.com/codethor0/secure-code-reasoner/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/codethor0/secure-code-reasoner/ci.yml?branch=main)](https://github.com/codethor0/secure-code-reasoner/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/badge/PyPI-not%20published-lightgrey)](https://pypi.org/project/secure-code-reasoner/)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fcodethor0%2Fsecure--code--reasoner-blue)](https://github.com/codethor0/secure-code-reasoner/pkgs/container/secure-code-reasoner)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -16,13 +16,13 @@ A research-oriented, developer-focused toolkit for analyzing, fingerprinting, an
 
 Secure Code Reasoner is currently distributed via source installation and Docker images.
 
-- **PyPI**: Not published yet
+- **PyPI**: Not published (as of v0.1.0, 2024-12-13)
 - **Docker**: Published via GitHub Container Registry
 - **Releases**: GitHub releases are authoritative
 
 ## PyPI Publishing Status
 
-Secure Code Reasoner is prepared for PyPI publication. The project metadata in `pyproject.toml` is complete and validated:
+Secure Code Reasoner is **NOT PUBLISHED** on PyPI. The project metadata in `pyproject.toml` is complete and validated:
 
 - Package name: `secure-code-reasoner`
 - Version: `0.1.0` (latest stable), pre-releases available (v0.1.1-rc*)
@@ -35,13 +35,13 @@ Secure Code Reasoner is prepared for PyPI publication. The project metadata in `
 PyPI publishing is currently **NOT PUBLISHED**. The upload workflow is enabled and gated by verification:
 
 - **Verification Required**: `scripts/verify.sh` must pass before any publish attempt
-- **CI Enforcement**: Publishing only occurs via GitHub Actions CI workflow
+- **CI Enforcement**: Publishing occurs via GitHub Actions CI workflow. Verification is enforced in CI workflows but not guaranteed by branch protection (administrative users can bypass).
 - **Signed Tags Only**: Only signed git tags matching `v*.*.*` can trigger publication
 - **Current State**: Upload workflow is active; publication attempts require all verification gates to pass
 
 See [VERIFY.md](VERIFY.md) for complete PyPI publishing prerequisites and failure conditions.
 
-The PyPI badge reflects "not published" status. Publication will occur automatically when a signed tag triggers the workflow and all verification gates pass.
+The PyPI badge reflects "not published" status. Badges may lag real state by several minutes due to caching. Publication will occur automatically when a signed tag triggers the workflow and all verification gates pass.
 
 ## Overview
 
