@@ -82,3 +82,61 @@ jobs:
       - name: Run mypy
         run: mypy src
 
+  guardrail:
+    name: CI Guardrail
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || apt-get update && apt-get install -y curl
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          apt-get update
+          apt-get install gh -y
+
+      - name: Verify status contexts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ALLOWED_CONTEXTS=("Lint" "Test (3.11)" "Test (3.12)" "Type Check")
+          COMMIT_SHA="${{ github.sha }}"
+          
+          # Get all check run names for this commit
+          CHECK_RUNS=$(gh api repos/${{ github.repository }}/commits/$COMMIT_SHA/check-runs --jq '.check_runs[] | .name' | sort -u)
+          
+          # Check for unexpected contexts
+          UNEXPECTED=""
+          for check in $CHECK_RUNS; do
+            if [[ "$check" == "semantic-release" ]] || [[ "$check" == "CodeQL Analysis (python)" ]]; then
+              continue
+            fi
+            FOUND=0
+            for allowed in "${ALLOWED_CONTEXTS[@]}"; do
+              if [[ "$check" == "$allowed" ]]; then
+                FOUND=1
+                break
+              fi
+            done
+            if [[ $FOUND -eq 0 ]]; then
+              UNEXPECTED="$UNEXPECTED $check"
+            fi
+          done
+          
+          if [[ -n "$UNEXPECTED" ]]; then
+            echo "ERROR: Unexpected status contexts detected:$UNEXPECTED"
+            echo "Allowed contexts: ${ALLOWED_CONTEXTS[*]}"
+            exit 1
+          fi
+          
+          echo "All status contexts are valid"
+
