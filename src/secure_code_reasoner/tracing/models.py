@@ -23,7 +23,7 @@ class TraceEventType(str, Enum):
 @dataclass(frozen=True)
 class TraceEvent:
     """Represents a single trace event captured during code execution.
-    
+
     Note: timestamp is non-deterministic metadata (uses time.time()) and breaks
     byte-for-byte reproducibility. Core event data (type, file_path, etc.) is
     deterministic, but timestamps vary between runs.
@@ -134,7 +134,7 @@ class RiskScore:
 @dataclass(frozen=True)
 class ExecutionTrace:
     """Complete execution trace with risk assessment.
-    
+
     Note: execution_time and event timestamps are non-deterministic metadata
     that vary between runs. Core trace structure (events, exit_code, risk_score)
     is deterministic for the same script and configuration.
@@ -158,7 +158,7 @@ class ExecutionTrace:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert execution trace to dictionary for serialization.
-        
+
         Note: Output includes non-deterministic timestamps. For reproducible
         comparisons, filter out timestamp fields or use deterministic event ordering.
         """
@@ -171,7 +171,10 @@ class ExecutionTrace:
             "stdout": self.stdout,
             "stderr": self.stderr,
             "metadata": self.metadata,
-            "_non_deterministic_fields": ["execution_time", "events[].timestamp"],  # Mitigation E: Explicit documentation
+            "_non_deterministic_fields": [
+                "execution_time",
+                "events[].timestamp",
+            ],  # Mitigation E: Explicit documentation
             # Level-4: Proof-carrying output - structural requirement
             "proof_obligations": {
                 "requires_non_deterministic_filtering": True,

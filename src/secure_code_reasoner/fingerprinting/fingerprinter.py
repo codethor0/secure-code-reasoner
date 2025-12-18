@@ -257,7 +257,7 @@ class Fingerprinter:
             raise FingerprintingError(f"Repository path does not exist: {self.repository_path}")
         if not self.repository_path.is_dir():
             raise FingerprintingError(f"Repository path is not a directory: {self.repository_path}")
-    
+
     def _validate_path_within_root(self, path: Path) -> Path:
         """Validate that resolved path remains within repository root."""
         resolved = path.resolve()
@@ -315,7 +315,7 @@ class Fingerprinter:
         artifacts_tuple = tuple(
             sorted(artifacts, key=lambda a: (a.path.as_posix(), a.start_line, a.name))
         )
-        
+
         # Mitigation B: Never return valid fingerprint on TypeError
         try:
             artifacts_set = frozenset(artifacts_tuple)
@@ -326,7 +326,7 @@ class Fingerprinter:
             ) from e
 
         fingerprint_hash = self._compute_fingerprint_hash(artifacts, dependency_graph)
-        
+
         # Determine fingerprint status
         fingerprint_status = "PARTIAL" if failed_files else "COMPLETE"
         status_metadata: dict[str, Any] = {}
@@ -360,7 +360,7 @@ class Fingerprinter:
             except FingerprintingError:
                 logger.warning(f"Skipping path outside repository root: {path}")
                 continue
-            
+
             if validated_path.is_dir():
                 if validated_path.name in self.IGNORE_DIRS:
                     continue
