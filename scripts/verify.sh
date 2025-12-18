@@ -333,6 +333,11 @@ try:
             print("ERROR: Empty fingerprint JSON", file=sys.stderr)
             sys.exit(1)
         
+        # Validate JSON starts with { and ends with }
+        if not content.startswith('{') or not content.endswith('}'):
+            print(f"ERROR: Invalid JSON format (does not start/end with braces): {content[:50]}...", file=sys.stderr)
+            sys.exit(1)
+        
         fingerprint = json.loads(content)
         
         # Level-4: Verify proof_obligations present
