@@ -69,7 +69,7 @@ fi
 log_info "Remote HEAD: $REMOTE_HEAD"
 
 if [ "$LOCAL_HEAD" = "$REMOTE_HEAD" ]; then
-    log_info "✅ Local and remote are synchronized"
+    log_info "Local and remote are synchronized"
 else
     AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
     BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo "0")
@@ -94,13 +94,13 @@ LEVEL4_COMMIT="f1b2fd03ab60fbd02b9f6974665586a02ec925ea"
 LEVEL4_SHORT="f1b2fd0"
 
 if git cat-file -e "$LEVEL4_COMMIT" 2>/dev/null; then
-    log_info "✅ Level-4 commit found locally: $LEVEL4_SHORT"
+    log_info "Level-4 commit found locally: $LEVEL4_SHORT"
     
     # Check if it's in remote
     if git merge-base --is-ancestor "$LEVEL4_COMMIT" origin/main 2>/dev/null; then
-        log_info "✅ Level-4 commit is in remote history"
+        log_info "Level-4 commit is in remote history"
     else
-        log_warn "⚠️  Level-4 commit not in remote history (needs push)"
+        log_warn "Level-4 commit not in remote history (needs push)"
     fi
 else
     log_error "Level-4 commit not found locally: $LEVEL4_SHORT"
@@ -116,9 +116,9 @@ else
     log_info "GitHub main SHA: $GITHUB_SHA"
     
     if [ "$GITHUB_SHA" = "$REMOTE_HEAD" ]; then
-        log_info "✅ GitHub API matches git remote"
+        log_info "GitHub API matches git remote"
     else
-        log_warn "⚠️  GitHub API SHA ($GITHUB_SHA) differs from git remote ($REMOTE_HEAD)"
+        log_warn "GitHub API SHA ($GITHUB_SHA) differs from git remote ($REMOTE_HEAD)"
         log_info "This may indicate a sync delay or fetch issue"
     fi
 fi
@@ -128,18 +128,18 @@ log_section "Step 4: Branch Protection Verification"
 
 BRANCH_PROTECTION=$(gh api "repos/$REPO/branches/main/protection" --jq '.' 2>&1 || echo "")
 if echo "$BRANCH_PROTECTION" | grep -q "404"; then
-    log_error "❌ Branch protection NOT CONFIGURED (404)"
+    log_error "Branch protection NOT CONFIGURED (404)"
     log_info "Action required: Configure branch protection in GitHub UI"
     log_info "See: docs/BRANCH_PROTECTION_CONFIGURATION.md"
 else
     PROTECTED=$(echo "$BRANCH_PROTECTION" | jq -r '.protected // false' 2>/dev/null || echo "false")
     if [ "$PROTECTED" = "true" ]; then
-        log_info "✅ Branch protection is enabled"
+        log_info "Branch protection is enabled"
         
         # Check required status checks
         REQUIRED_CHECKS=$(gh api "repos/$REPO/branches/main/protection/required_status_checks" --jq '.' 2>&1 || echo "")
         if echo "$REQUIRED_CHECKS" | grep -q "404"; then
-            log_warn "⚠️  Required status checks not configured"
+            log_warn "Required status checks not configured"
         else
             CHECK_COUNT=$(echo "$REQUIRED_CHECKS" | jq '.contexts | length' 2>/dev/null || echo "0")
             log_info "Required status checks configured: $CHECK_COUNT"
@@ -149,9 +149,9 @@ else
             
             for expected in "${EXPECTED_CHECKS[@]}"; do
                 if echo "$CHECK_CONTEXTS" | grep -q "^${expected}$"; then
-                    log_info "  ✅ $expected"
+                    log_info "  [OK] $expected"
                 else
-                    log_warn "  ⚠️  Missing: $expected"
+                    log_warn "  [MISSING] $expected"
                 fi
             done
             
@@ -159,12 +159,12 @@ else
             FORBIDDEN_CHECKS=("semantic-release" "pypi-publish" "docker-publish" "CI Guardrail")
             for forbidden in "${FORBIDDEN_CHECKS[@]}"; do
                 if echo "$CHECK_CONTEXTS" | grep -q "$forbidden"; then
-                    log_warn "  ⚠️  Forbidden check found: $forbidden (should not be required)"
+                    log_warn "  [FORBIDDEN] $forbidden (should not be required)"
                 fi
             done
         fi
     else
-        log_error "❌ Branch protection is disabled"
+        log_error "Branch protection is disabled"
     fi
 fi
 
@@ -180,24 +180,24 @@ if [ -n "$GITHUB_SHA" ]; then
         
         case "$STATE" in
             "success")
-                log_info "✅ All CI checks passing"
+                log_info "All CI checks passing"
                 ;;
             "pending")
-                log_warn "⚠️  CI checks still running"
+                log_warn "CI checks still running"
                 ;;
             "failure"|"error")
-                log_error "❌ CI checks failing"
+                log_error "CI checks failing"
                 echo "$CI_STATUS" | jq -r '.statuses[] | "  \(.context): \(.state)"' 2>/dev/null || true
                 ;;
             *)
-                log_warn "⚠️  CI state unknown: $STATE"
+                log_warn "CI state unknown: $STATE"
                 ;;
         esac
         
         # Show individual statuses
         echo "$CI_STATUS" | jq -r '.statuses[] | "  \(.context): \(.state)"' 2>/dev/null | head -10 || true
     else
-        log_warn "⚠️  Cannot fetch CI status"
+        log_warn "Cannot fetch CI status"
     fi
 fi
 
@@ -208,9 +208,9 @@ BRANCH_COUNT=$(gh api "repos/$REPO/branches" --jq 'length' 2>&1 || echo "0")
 log_info "Active branches on GitHub: $BRANCH_COUNT"
 
 if [ "$BRANCH_COUNT" -le 3 ]; then
-    log_info "✅ Branch count acceptable (≤3)"
+    log_info "Branch count acceptable (≤3)"
 else
-    log_warn "⚠️  High branch count ($BRANCH_COUNT). Consider cleanup."
+    log_warn "High branch count ($BRANCH_COUNT). Consider cleanup."
 fi
 
 # Step 7: Verify Level-4 files exist
@@ -227,17 +227,17 @@ LEVEL4_FILES=(
 MISSING_FILES=0
 for file in "${LEVEL4_FILES[@]}"; do
     if git cat-file -e "$LEVEL4_COMMIT:$file" 2>/dev/null; then
-        log_info "  ✅ $file"
+        log_info "  [OK] $file"
     else
-        log_error "  ❌ Missing: $file"
+        log_error "  [MISSING] $file"
         MISSING_FILES=$((MISSING_FILES + 1))
     fi
 done
 
 if [ "$MISSING_FILES" -eq 0 ]; then
-    log_info "✅ All Level-4 files present in commit"
+    log_info "All Level-4 files present in commit"
 else
-    log_error "❌ $MISSING_FILES Level-4 file(s) missing"
+    log_error "$MISSING_FILES Level-4 file(s) missing"
 fi
 
 # Summary
@@ -245,15 +245,15 @@ log_section "Summary"
 
 if [ "$FAILED" -eq 0 ]; then
     if [ "$WARNINGS" -eq 0 ]; then
-        log_info "✅ Ground-truth sync: PASS (no issues)"
+        log_info "Ground-truth sync: PASS (no issues)"
         exit 0
     else
-        log_warn "⚠️  Ground-truth sync: PASS with $WARNINGS warning(s)"
+        log_warn "Ground-truth sync: PASS with $WARNINGS warning(s)"
         log_info "Review warnings above. System is functional but may need attention."
         exit 0
     fi
 else
-    log_error "❌ Ground-truth sync: FAIL"
+    log_error "Ground-truth sync: FAIL"
     log_info "Critical issues detected. Fix before proceeding."
     exit 1
 fi

@@ -6,7 +6,7 @@
 
 ## Pre-Push Checklist
 
-### A. Ground-Truth Sync ✅
+### A. Ground-Truth Sync
 
 - [x] `git fetch origin` completed
 - [x] Local HEAD matches origin/main: `24527a7`
@@ -15,7 +15,7 @@
 
 **Status**: Ready for commit
 
-### B. CI Reality Check ✅
+### B. CI Reality Check
 
 **Required to PASS** (must be green):
 - `verify-contract` - Verifies proof obligations, status fields
@@ -34,7 +34,7 @@
 
 **Status**: Workflows correctly configured
 
-### C. Branch Protection ⚠️
+### C. Branch Protection
 
 **Status**: NOT CONFIGURED (requires manual GitHub UI setup)
 
@@ -59,15 +59,15 @@ Should return list of required checks, not 404.
 
 **Status**: Manual configuration required
 
-### D. Badge Integrity ✅
+### D. Badge Integrity
 
-- [x] CI badge: Points to `.github/actions/workflows/ci.yml?branch=main` ✅
-- [x] PyPI badge: Static "not published" ✅
-- [x] Docker badge: Points to GHCR ✅
+- [x] CI badge: Points to `.github/actions/workflows/ci.yml?branch=main`
+- [x] PyPI badge: Static "not published"
+- [x] Docker badge: Points to GHCR
 
 **Status**: All badges correct
 
-### E. Proof-Carrying Output Enforcement ✅
+### E. Proof-Carrying Output Enforcement
 
 - [x] `verify.sh` updated with proof obligation checks
 - [x] Checks `fingerprint_status` presence
@@ -77,7 +77,7 @@ Should return list of required checks, not 404.
 
 **Status**: CI enforcement ready
 
-### F. Sanity Check ⏳
+### F. Sanity Check
 
 **Command**:
 ```bash
@@ -88,7 +88,7 @@ scripts/verify.sh && pytest && mypy src && ruff check src tests
 
 **Status**: Ready to run
 
-### G. Final State Definition ✅
+### G. Final State Definition
 
 **Created**: `docs/FINAL_STATE_DEFINITION.md`
 

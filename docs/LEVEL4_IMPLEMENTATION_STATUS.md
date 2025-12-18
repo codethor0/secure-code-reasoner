@@ -10,21 +10,21 @@ Level-4 converts the system from "epistemically safe if read carefully" to "math
 
 ## Completed Components
 
-### Phase A: Formal Property Identification ✅
+### Phase A: Formal Property Identification
 
 - **Status**: Complete
 - **Artifact**: `docs/FORMAL_PROPERTIES.md`
 - **Properties Defined**: 12 provable properties across 5 categories
 - **Unprovable Properties**: 10 properties explicitly declared in `docs/UNPROVABLE_PROPERTIES.md`
 
-### Phase B: Invariant Formalization ✅
+### Phase B: Invariant Formalization
 
 - **Status**: Complete
 - **Artifact**: `docs/SEMANTIC_INVARIANTS.md`
 - **Invariants Documented**: 8 semantic invariants
 - **Enforcement**: Tests specified for each invariant
 
-### Phase C: Proof-Carrying Output ✅
+### Phase C: Proof-Carrying Output
 
 - **Status**: Implemented
 - **Changes**:
@@ -33,20 +33,20 @@ Level-4 converts the system from "epistemically safe if read carefully" to "math
   - `ExecutionTrace.to_dict()` includes `proof_obligations`
 - **Impact**: Misuse now requires explicit violation of proof obligations
 
-### Phase D: Misuse as Explicit Contract Violation ✅
+### Phase D: Misuse as Explicit Contract Violation
 
 - **Status**: Documented
 - **Artifact**: `docs/MISUSE_RESISTANT_OUTPUT_CONTRACT.md`
 - **Impact**: Misuse is now documented breach, not accidental error
 
-### Phase E: Regression-Proofing via Property Tests 🟡
+### Phase E: Regression-Proofing via Property Tests
 
 - **Status**: Partial
 - **Artifact**: `tests/test_property_tests.py`
 - **Implemented**: Basic property tests
 - **Remaining**: Full Hypothesis integration for comprehensive property testing
 
-### Phase F: Explicit Unprovable Set ✅
+### Phase F: Explicit Unprovable Set
 
 - **Status**: Complete
 - **Artifact**: `docs/UNPROVABLE_PROPERTIES.md`

@@ -20,7 +20,7 @@
 
 ## Implementation Summary
 
-### Phase A: Formal Property Identification ✅
+### Phase A: Formal Property Identification
 
 **Status**: Complete
 
@@ -45,7 +45,7 @@
 
 **Artifact**: `docs/FORMAL_PROPERTIES.md`, `docs/UNPROVABLE_PROPERTIES.md`
 
-### Phase B: Invariant Formalization ✅
+### Phase B: Invariant Formalization
 
 **Status**: Complete
 
@@ -60,7 +60,7 @@
 
 **Artifact**: `docs/SEMANTIC_INVARIANTS.md`
 
-### Phase C: Proof-Carrying Output ✅
+### Phase C: Proof-Carrying Output
 
 **Status**: Implemented
 
@@ -73,7 +73,7 @@
 
 **Verification**: Proof obligations verified in output
 
-### Phase D: Misuse as Explicit Contract Violation ✅
+### Phase D: Misuse as Explicit Contract Violation
 
 **Status**: Documented
 
@@ -81,7 +81,7 @@
 
 **Impact**: Misuse is now documented breach, not accidental error. This does not stop misuse — but it makes misuse provable and attributable.
 
-### Phase E: Regression-Proofing via Property Tests 🟡
+### Phase E: Regression-Proofing via Property Tests
 
 **Status**: Partial
 
@@ -93,7 +93,7 @@
 
 **Remaining**: Full Hypothesis integration for comprehensive property testing (optional)
 
-### Phase F: Explicit Unprovable Set ✅
+### Phase F: Explicit Unprovable Set
 
 **Status**: Complete
 

@@ -19,12 +19,12 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 
 | Phase | Status | Classification |
 |-------|--------|----------------|
-| Phase 1: Repository Reality Check | ✅ PASS | All artifacts present, shadow workflows absent |
-| Phase 2: CI Enforcement Truth Model | ⚠️ CONDITIONAL | CI-enforced only, not repository-enforced |
-| Phase 3: LLM/Agent Architecture Review | ✅ PASS | Rule-based deterministic system (not LLM-driven) |
-| Phase 4: Documentation vs Code Diff | ✅ PASS | Claims match implementation, qualified language |
-| Phase 5: Badge & UI Semantics | ✅ PASS | Badges accurate, UI red state explainable |
-| Phase 6: Actionable Next Steps | 📋 RECOMMENDATION | Branch protection configuration recommended |
+| Phase 1: Repository Reality Check | PASS | All artifacts present, shadow workflows absent |
+| Phase 2: CI Enforcement Truth Model | CONDITIONAL | CI-enforced only, not repository-enforced |
+| Phase 3: LLM/Agent Architecture Review | PASS | Rule-based deterministic system (not LLM-driven) |
+| Phase 4: Documentation vs Code Diff | PASS | Claims match implementation, qualified language |
+| Phase 5: Badge & UI Semantics | PASS | Badges accurate, UI red state explainable |
+| Phase 6: Actionable Next Steps | RECOMMENDATION | Branch protection configuration recommended |
 
 ---
 
@@ -32,27 +32,27 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 
 ### Confirmed Facts
 
-**Remote HEAD SHA**: `ec99249ce7e6467cfccc2f5f51d9ebc043ed3e01` ✅  
+**Remote HEAD SHA**: `ec99249ce7e6467cfccc2f5f51d9ebc043ed3e01`  
 **Matches Expected**: YES
 
 **Required Files**:
-- ✅ `docs/AUDIT_V5.md`: EXISTS
-- ✅ `VERIFY.md`: EXISTS
-- ✅ `ARCHITECTURE.md`: EXISTS
+- `docs/AUDIT_V5.md`: EXISTS
+- `VERIFY.md`: EXISTS
+- `ARCHITECTURE.md`: EXISTS
 
 **Shadow Workflows**:
-- ✅ `.github/workflows/publish-pypi.yml`: ABSENT (correctly deleted)
+- `.github/workflows/publish-pypi.yml`: ABSENT (correctly deleted)
 
 ### Workflow Trigger Matrix
 
 | Workflow | Push | PR | Tag | Release | Manual |
 |----------|------|----|----|---------|--------|
-| `ci.yml` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `codeql.yml` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `docker-publish.yml` | ❌ | ❌ | ❌ | ✅ | ✅ |
-| `nightly.yml` | ❌ | ❌ | ❌ | ❌ | ✅ |
-| `pypi-publish.yml` | ✅ | ❌ | ✅ | ❌ | ❌ |
-| `semantic-release.yml` | ✅ | ❌ | ✅ | ❌ | ✅ |
+| `ci.yml` | YES | YES | NO | NO | NO |
+| `codeql.yml` | YES | YES | NO | NO | NO |
+| `docker-publish.yml` | NO | NO | NO | YES | YES |
+| `nightly.yml` | NO | NO | NO | NO | YES |
+| `pypi-publish.yml` | YES | NO | YES | NO | NO |
+| `semantic-release.yml` | YES | NO | YES | NO | YES |
 
 **Analysis**:
 - `pypi-publish.yml` triggers on tag push (`v*.*.*`), requires `verify-before-publish` job
@@ -68,27 +68,27 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 **Strongest Truthful Statement**: "Verification is CI-enforced but administratively bypassable."
 
 **Question**: Are core checks enforced by branch protection?  
-**Answer**: ❌ NO  
+**Answer**: NO  
 **Evidence**: GitHub API returns 404 for branch protection required status checks  
 **Implication**: No required checks configured at repository level
 
 **Question**: Can an admin merge failing code?  
-**Answer**: ✅ YES  
+**Answer**: YES  
 **Evidence**: Branch protection not configured → admins can push directly to `main`  
 **Implication**: Enforcement relies on maintainer good faith
 
 **Question**: Can a release trigger a publish without verification?  
-**Answer**: ❌ NO  
+**Answer**: NO  
 **Evidence**: `docker-publish.yml` triggers on release, but `pypi-publish.yml` only triggers on tags  
 **Implication**: Releases cannot trigger PyPI publish
 
 **Question**: Can a tag bypass verification?  
-**Answer**: ❌ NO  
+**Answer**: NO  
 **Evidence**: `pypi-publish.yml` requires `verify-before-publish` job (line 114: `needs: verify-before-publish`)  
 **Implication**: Tags must pass verification before publish
 
 **Question**: Can a workflow be manually re-run with altered context?  
-**Answer**: ✅ YES  
+**Answer**: YES  
 **Evidence**: GitHub Actions allows manual re-runs via UI  
 **Implication**: Even if verification passes once, admin can re-run with different secrets/env
 
@@ -101,10 +101,10 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 
 ### Verification Gates
 
-- ✅ Tag signature verification (GitHub API)
-- ✅ `verify-before-publish` job required
-- ✅ `build-and-test-publish` job required
-- ❌ Branch protection not configured
+- Tag signature verification (GitHub API)
+- `verify-before-publish` job required
+- `build-and-test-publish` job required
+- Branch protection not configured
 
 **Conclusion**: Enforcement is **best-effort CI-only**, not absolute. Repository assumes maintainers act in good faith.
 
@@ -120,47 +120,47 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 
 ### Determinism Checks
 
-**Are outputs reproducible?** ✅ YES  
+**Are outputs reproducible?** YES  
 - Fingerprinting uses deterministic hashing
 - Agent coordinator merges findings deterministically (sorted by severity)
 - Risk scoring uses deterministic rules
 - File processing order is deterministic (sorted paths)
 
-**Is temperature controlled?** ✅ N/A  
+**Is temperature controlled?** N/A  
 - No LLM calls → no temperature parameter
 
-**Is randomness documented?** ✅ YES  
+**Is randomness documented?** YES  
 - No randomness in core operations
 - Only deterministic operations documented
 
 ### Agent Boundaries
 
-**Are agents stateless or stateful?** ✅ STATELESS  
+**Are agents stateless or stateful?** STATELESS  
 - Agents receive fingerprint, return report
 - No persistent state between invocations
 - Coordinator merges reports deterministically
 
-**Is memory explicit?** ✅ YES  
+**Is memory explicit?** YES  
 - No implicit memory or conversation history
 - Each analysis is independent
 
-**Can agents affect each other unexpectedly?** ❌ NO  
+**Can agents affect each other unexpectedly?** NO  
 - Agents run independently
 - Coordinator isolates failures (one agent failure doesn't stop others)
 
 ### Execution Safety
 
-**Are subprocess calls constrained?** ✅ YES  
+**Are subprocess calls constrained?** YES  
 - `subprocess.run()` with command lists (not `shell=True`)
 - Timeout enforced (default 30s)
 - Output size limits enforced
 
-**Is user input isolated?** ✅ YES  
+**Is user input isolated?** YES  
 - Script paths validated before execution
 - Environment variables control restrictions
 - Subprocess isolation (advisory, not OS-level)
 
-**Are timeouts enforced?** ✅ YES  
+**Are timeouts enforced?** YES  
 - Default timeout: 30 seconds
 - `subprocess.TimeoutExpired` handled
 - Execution terminates on timeout
@@ -173,13 +173,13 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 - Python-level restrictions (not OS-level sandboxing)
 - Best-effort enforcement (not absolute)
 
-**Are those claims verifiable?** ✅ YES  
+**Are those claims verifiable?** YES  
 - Code is deterministic (no randomness)
 - Agents are rule-based (no LLM calls)
 - Restrictions are Python-level (environment variables)
 - Enforcement is CI-only (branch protection not configured)
 
-**Are any claims stronger than implementation?** ❌ NO  
+**Are any claims stronger than implementation?** NO  
 - Documentation correctly qualifies all security claims
 - "Attempts to block" language matches implementation
 - "Advisory" language matches subprocess isolation reality
@@ -195,56 +195,56 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 #### README.md Claims
 
 **Claim**: "PyPI: Not published (as of v0.1.0, 2024-12-13)"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: PyPI JSON API returns 404, badge shows "not published"  
 **Status**: ACCURATE
 
 **Claim**: "Attempts to block network calls via Python-level interception... Bypasses are possible"  
-**Classification**: ✅ BEST-EFFORT  
+**Classification**: BEST-EFFORT  
 **Evidence**: `trace_wrapper.py` intercepts `socket.socket()` via environment variables  
 **Status**: ACCURATE (qualified language matches implementation)
 
 **Claim**: "Attempts to block file writes via Python-level interception of `open()`... Bypasses are possible"  
-**Classification**: ✅ BEST-EFFORT  
+**Classification**: BEST-EFFORT  
 **Evidence**: `trace_wrapper.py` intercepts `open()` via environment variables  
 **Status**: ACCURATE (qualified language matches implementation)
 
 **Claim**: "Python-level restrictions (not OS-level sandboxing)"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: `ExecutionTracer` uses subprocess with environment variables, not OS-level sandboxing  
 **Status**: ACCURATE
 
 **Claim**: "Verification is enforced in CI workflows but not guaranteed by branch protection"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: Branch protection API returns 404, workflows require verification jobs  
 **Status**: ACCURATE
 
 #### VERIFY.md Claims
 
 **Claim**: "Verified means the code executes according to documented behavior... It does not mean the software is secure"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: Explicit definition prevents misinterpretation  
 **Status**: ACCURATE
 
 **Claim**: "Administrative users can bypass branch protection rules"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: GitHub allows admin bypass, branch protection not configured  
 **Status**: ACCURATE
 
 #### ARCHITECTURE.md Claims
 
 **Claim**: "Deterministic fingerprint of a code repository"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: `Fingerprinter` uses deterministic hashing, sorted file processing  
 **Status**: ACCURATE
 
 **Claim**: "Python-level restrictions (advisory only, not guaranteed security)"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: `ExecutionTracer` uses environment variables, not OS-level sandboxing  
 **Status**: ACCURATE
 
 **Claim**: "Agent execution order does not affect merged results"  
-**Classification**: ✅ ENFORCED  
+**Classification**: ENFORCED  
 **Evidence**: `AgentCoordinator` sorts findings deterministically by severity  
 **Status**: ACCURATE
 
@@ -265,7 +265,7 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 ### CI Badge
 
 **Source**: `https://img.shields.io/github/actions/workflow/status/codethor0/secure-code-reasoner/ci.yml?branch=main`  
-**Points to**: `ci.yml` workflow on `main` branch ✅  
+**Points to**: `ci.yml` workflow on `main` branch  
 **Status**: ACCURATE
 
 ### PyPI Badge
@@ -274,7 +274,7 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 **Behavior**: Static badge (not live API query)  
 **Status**: ACCURATE (matches reality: not published)
 
-**Cache Disclosure**: ✅ Present in README ("Badges may lag real state by several minutes")
+**Cache Disclosure**: Present in README ("Badges may lag real state by several minutes")
 
 ### GitHub UI Status
 
@@ -319,15 +319,15 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 
 ## CONFIRMED FACTS
 
-1. ✅ Remote HEAD matches expected remediation commit
-2. ✅ All required files present (`AUDIT_V5.md`, `VERIFY.md`, `ARCHITECTURE.md`)
-3. ✅ Shadow workflow (`publish-pypi.yml`) deleted
-4. ✅ PyPI publishing workflow is verification-gated
-5. ✅ All core CI checks passing
-6. ✅ Documentation claims match implementation
-7. ✅ System is rule-based deterministic (not LLM-driven)
-8. ✅ Security claims are qualified (no absolutes)
-9. ✅ Branch protection not configured (explains red UI)
+1. Remote HEAD matches expected remediation commit
+2. All required files present (`AUDIT_V5.md`, `VERIFY.md`, `ARCHITECTURE.md`)
+3. Shadow workflow (`publish-pypi.yml`) deleted
+4. PyPI publishing workflow is verification-gated
+5. All core CI checks passing
+6. Documentation claims match implementation
+7. System is rule-based deterministic (not LLM-driven)
+8. Security claims are qualified (no absolutes)
+9. Branch protection not configured (explains red UI)
 
 ---
 
@@ -378,7 +378,7 @@ cat > docs/E2E_VERIFICATION_REPORT.md <<'EOF'
 
 ## FINAL VERDICT
 
-**Status**: ✅ VERIFIED & HONEST
+**Status**: VERIFIED & HONEST
 
 **Justification**:
 - All documentation claims match implementation
