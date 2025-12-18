@@ -376,7 +376,7 @@ class Fingerprinter:
 
     def _process_file(self, file_path: Path) -> tuple[list[CodeArtifact], bool]:
         """Process a single file and extract artifacts.
-        
+
         Returns:
             Tuple of (artifacts list, had_syntax_error bool)
         """
