@@ -289,8 +289,10 @@ class Fingerprinter:
 
         for file_path in self._walk_repository():
             try:
-                file_artifacts = self._process_file(file_path)
+                file_artifacts, had_syntax_error = self._process_file(file_path)
                 artifacts.extend(file_artifacts)
+                if had_syntax_error:
+                    failed_files.append(str(file_path))
 
                 for artifact in file_artifacts:
                     if isinstance(artifact, FileArtifact):
@@ -372,10 +374,15 @@ class Fingerprinter:
 
         return sorted(files)
 
-    def _process_file(self, file_path: Path) -> list[CodeArtifact]:
-        """Process a single file and extract artifacts."""
+    def _process_file(self, file_path: Path) -> tuple[list[CodeArtifact], bool]:
+        """Process a single file and extract artifacts.
+        
+        Returns:
+            Tuple of (artifacts list, had_syntax_error bool)
+        """
         artifacts: list[CodeArtifact] = []
         relative_path = file_path.relative_to(self.repository_path)
+        had_syntax_error = False
 
         if file_path.suffix == ".py":
             try:
@@ -419,10 +426,12 @@ class Fingerprinter:
                 except SyntaxError as e:
                     logger.warning(f"Syntax error in {file_path}: {e}")
                     artifacts.append(file_artifact)
+                    had_syntax_error = True
             except UnicodeDecodeError:
                 logger.warning(f"Cannot decode file {file_path} as UTF-8")
+                had_syntax_error = True
 
-        return artifacts
+        return artifacts, had_syntax_error
 
     def _build_dependency_graph(self, artifacts: list[CodeArtifact]) -> DependencyGraph:
         """Build dependency graph representing cross-file relationships."""

@@ -21,9 +21,9 @@ The following steps must execute successfully with exit code 0:
 2. **CLI Discovery**: `scr --help`, `scr analyze --help`, `scr trace --help`, `scr report --help` must render help text
 3. **Functional Analysis**: `scr analyze examples/demo-repo --format text` must produce fingerprint output
 4. **JSON Output**: `scr analyze examples/demo-repo --format json` must produce valid JSON
-   - Output format is NDJSON (newline-delimited JSON)
-   - Each JSON object must be valid JSON
-   - Multiple JSON objects may be separated by blank lines
+   - Output format is pretty-printed JSON (indent=2)
+   - Each JSON object is valid JSON
+   - When --output is specified, fingerprint and agent report are written to separate files
 5. **Report Generation**: `scr report examples/demo-repo --output <file>` must create non-empty report file
 6. **Execution Tracing**: `scr trace <script>` must complete with exit code 0
 7. **Test Suite**: `pytest tests/` must report exactly 203 passed tests
