@@ -311,13 +311,17 @@ PROOF_CHECK_FAILED=0
 FINGERPRINT_JSON="$ARTIFACT_DIR/fingerprint_proof_check.json"
 # Use temp file to avoid broken pipe from grep/head combination
 TEMP_JSON=$(mktemp)
+# Capture CLI output, filtering out log lines starting with year (2025)
 $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON" 2>&1 || true
 if [ -s "$TEMP_JSON" ]; then
     # Extract first line that looks like JSON (starts with {)
-    grep "^{" "$TEMP_JSON" | head -1 > "$FINGERPRINT_JSON" 2>/dev/null || true
+    JSON_LINE=$(grep "^{" "$TEMP_JSON" | head -1)
+    if [ -n "$JSON_LINE" ]; then
+        echo "$JSON_LINE" > "$FINGERPRINT_JSON" 2>/dev/null || true
+    fi
 fi
 rm -f "$TEMP_JSON"
-if [ -s "$FINGERPRINT_JSON" ] && grep -q "^{" "$FINGERPRINT_JSON" 2>/dev/null; then
+if [ -s "$FINGERPRINT_JSON" ] && head -1 "$FINGERPRINT_JSON" | grep -q "^{"; then
     python3 << PYEOF
 import json
 import sys
@@ -374,13 +378,17 @@ AGENT_REPORT_JSON="$ARTIFACT_DIR/agent_report_proof_check.json"
 # The analyze command outputs both fingerprint and agent report, we need to check the second JSON object
 # Use temp file to avoid broken pipe from grep/tail combination
 TEMP_JSON2=$(mktemp)
+# Capture CLI output, filtering out log lines starting with year (2025)
 $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON2" 2>&1 || true
 if [ -s "$TEMP_JSON2" ]; then
     # Extract last line that looks like JSON (starts with {)
-    grep "^{" "$TEMP_JSON2" | tail -1 > "$AGENT_REPORT_JSON" 2>/dev/null || true
+    JSON_LINE=$(grep "^{" "$TEMP_JSON2" | tail -1)
+    if [ -n "$JSON_LINE" ]; then
+        echo "$JSON_LINE" > "$AGENT_REPORT_JSON" 2>/dev/null || true
+    fi
 fi
 rm -f "$TEMP_JSON2"
-if [ -s "$AGENT_REPORT_JSON" ] && grep -q "^{" "$AGENT_REPORT_JSON" 2>/dev/null; then
+if [ -s "$AGENT_REPORT_JSON" ] && head -1 "$AGENT_REPORT_JSON" | grep -q "^{"; then
     python3 << PYEOF
 import json
 import sys
