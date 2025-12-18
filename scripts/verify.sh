@@ -314,11 +314,45 @@ TEMP_JSON=$(mktemp)
 # Capture CLI output, filtering out log lines starting with year (2025)
 $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON" 2>&1 || true
 if [ -s "$TEMP_JSON" ]; then
-    # Extract first line that looks like JSON (starts with {)
-    JSON_LINE=$(grep "^{" "$TEMP_JSON" | head -1)
-    if [ -n "$JSON_LINE" ]; then
-        echo "$JSON_LINE" > "$FINGERPRINT_JSON" 2>/dev/null || true
-    fi
+    # Extract first complete JSON object (multi-line, starts with { and ends with })
+    # Find line starting with {, then extract until matching }
+    python3 << PYEXTRACT
+import json
+import sys
+
+try:
+    with open("$TEMP_JSON", 'r') as f:
+        lines = f.readlines()
+    
+    # Find first line starting with {
+    start_idx = None
+    for i, line in enumerate(lines):
+        if line.strip().startswith('{'):
+            start_idx = i
+            break
+    
+    if start_idx is None:
+        sys.exit(1)
+    
+    # Extract JSON object (may span multiple lines)
+    json_lines = []
+    brace_count = 0
+    for i in range(start_idx, len(lines)):
+        line = lines[i]
+        json_lines.append(line)
+        brace_count += line.count('{') - line.count('}')
+        if brace_count == 0:
+            break
+    
+    if brace_count == 0:
+        with open("$FINGERPRINT_JSON", 'w') as out:
+            out.write(''.join(json_lines))
+        sys.exit(0)
+    else:
+        sys.exit(1)
+except Exception:
+    sys.exit(1)
+PYEXTRACT
 fi
 rm -f "$TEMP_JSON"
 if [ -s "$FINGERPRINT_JSON" ] && head -1 "$FINGERPRINT_JSON" | grep -q "^{"; then
@@ -386,11 +420,44 @@ TEMP_JSON2=$(mktemp)
 # Capture CLI output, filtering out log lines starting with year (2025)
 $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON2" 2>&1 || true
 if [ -s "$TEMP_JSON2" ]; then
-    # Extract last line that looks like JSON (starts with {)
-    JSON_LINE=$(grep "^{" "$TEMP_JSON2" | tail -1)
-    if [ -n "$JSON_LINE" ]; then
-        echo "$JSON_LINE" > "$AGENT_REPORT_JSON" 2>/dev/null || true
-    fi
+    # Extract second complete JSON object (multi-line, starts with { and ends with })
+    python3 << PYEXTRACT2
+import json
+import sys
+
+try:
+    with open("$TEMP_JSON2", 'r') as f:
+        lines = f.readlines()
+    
+    # Find all lines starting with {
+    json_starts = []
+    for i, line in enumerate(lines):
+        if line.strip().startswith('{'):
+            json_starts.append(i)
+    
+    if len(json_starts) < 2:
+        sys.exit(1)
+    
+    # Extract second JSON object (may span multiple lines)
+    start_idx = json_starts[1]
+    json_lines = []
+    brace_count = 0
+    for i in range(start_idx, len(lines)):
+        line = lines[i]
+        json_lines.append(line)
+        brace_count += line.count('{') - line.count('}')
+        if brace_count == 0:
+            break
+    
+    if brace_count == 0:
+        with open("$AGENT_REPORT_JSON", 'w') as out:
+            out.write(''.join(json_lines))
+        sys.exit(0)
+    else:
+        sys.exit(1)
+except Exception:
+    sys.exit(1)
+PYEXTRACT2
 fi
 rm -f "$TEMP_JSON2"
 if [ -s "$AGENT_REPORT_JSON" ] && head -1 "$AGENT_REPORT_JSON" | grep -q "^{"; then
