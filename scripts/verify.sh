@@ -311,10 +311,11 @@ PROOF_CHECK_FAILED=0
 FINGERPRINT_JSON="$ARTIFACT_DIR/fingerprint_proof_check.json"
 # Use temp file to avoid broken pipe from grep/head combination
 TEMP_JSON=$(mktemp)
-if $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON" 2>&1; then
+$CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON" 2>&1 || true
+if [ -s "$TEMP_JSON" ]; then
     head -1 "$TEMP_JSON" > "$FINGERPRINT_JSON" 2>/dev/null || true
-    rm -f "$TEMP_JSON"
 fi
+rm -f "$TEMP_JSON"
 if [ -s "$FINGERPRINT_JSON" ]; then
     python3 << PYEOF
 import json
@@ -372,10 +373,11 @@ AGENT_REPORT_JSON="$ARTIFACT_DIR/agent_report_proof_check.json"
 # The analyze command outputs both fingerprint and agent report, we need to check the second JSON object
 # Use temp file to avoid broken pipe from grep/tail combination
 TEMP_JSON2=$(mktemp)
-if $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON2" 2>&1; then
+$CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" > "$TEMP_JSON2" 2>&1 || true
+if [ -s "$TEMP_JSON2" ]; then
     tail -1 "$TEMP_JSON2" > "$AGENT_REPORT_JSON" 2>/dev/null || true
-    rm -f "$TEMP_JSON2"
 fi
+rm -f "$TEMP_JSON2"
 if [ -s "$AGENT_REPORT_JSON" ]; then
     python3 << PYEOF
 import json
