@@ -4,6 +4,7 @@ import ast
 import hashlib
 import logging
 from pathlib import Path
+from typing import Any
 
 from secure_code_reasoner.exceptions import FingerprintingError
 from secure_code_reasoner.fingerprinting.models import (
@@ -328,7 +329,7 @@ class Fingerprinter:
         
         # Determine fingerprint status
         fingerprint_status = "PARTIAL" if failed_files else "COMPLETE"
-        status_metadata = {}
+        status_metadata: dict[str, Any] = {}
         if failed_files:
             status_metadata["failed_files"] = failed_files
             status_metadata["failed_file_count"] = len(failed_files)

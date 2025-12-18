@@ -309,7 +309,7 @@ PROOF_CHECK_FAILED=0
 
 # Verify fingerprint output includes proof_obligations
 FINGERPRINT_JSON="$ARTIFACT_DIR/fingerprint_proof_check.json"
-if $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" | head -1 > "$FINGERPRINT_JSON" 2>&1; then
+if $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" | head -1 > "$FINGERPRINT_JSON" 2>/dev/null; then
     python3 << PYEOF
 import json
 import sys
@@ -364,7 +364,7 @@ fi
 # Verify agent report includes proof_obligations (via analyze command which includes agent report)
 AGENT_REPORT_JSON="$ARTIFACT_DIR/agent_report_proof_check.json"
 # The analyze command outputs both fingerprint and agent report, we need to check the second JSON object
-if $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" | tail -1 > "$AGENT_REPORT_JSON" 2>&1; then
+if $CLI_CMD analyze examples/demo-repo --format json 2>&1 | grep -v "^2025" | tail -1 > "$AGENT_REPORT_JSON" 2>/dev/null; then
     python3 << PYEOF
 import json
 import sys

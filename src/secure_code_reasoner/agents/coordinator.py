@@ -61,7 +61,7 @@ class AgentCoordinator:
         merged_findings = self._merge_findings(agent_reports)
         merged_patches = self._merge_patches(agent_reports)
         summary = self._generate_summary(agent_reports)
-        
+
         # Mitigation C: Include failure information even when some agents succeed
         execution_status = "PARTIAL" if failed_agents else "COMPLETE"
         metadata = {

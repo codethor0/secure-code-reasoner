@@ -1,0 +1,506 @@
+{
+  "report_metadata": {
+    "report_type": "Level-3 Adversarial Verification & Validation - Epistemic Safety",
+    "project": "secure-code-reasoner",
+    "version": "0.1.0",
+    "report_date": "2024-12-17",
+    "audit_authority": "Adversarial V&V Agent (Level-3)",
+    "methodology": "Epistemic safety, misuse resistance, semantic drift analysis",
+    "assumptions": [
+      "Code will be misused",
+      "Environment will be hostile",
+      "Reviewers will misunderstand",
+      "Future maintainers will regress guarantees",
+      "Attackers will read docs more carefully than users"
+    ]
+  },
+  "output_contract_abuse": {
+    "fingerprint_json_fields": {
+      "fingerprint_hash": {
+        "misinterpretation": "Hash implies completeness and correctness",
+        "abuse_scenario": "Consumer checks hash matches, ignores fingerprint_status=PARTIAL",
+        "invalidating_if_missing": true,
+        "required_reading": "Must check fingerprint_status before trusting hash",
+        "severity": "HIGH"
+      },
+      "fingerprint_status": {
+        "misinterpretation": "PARTIAL might be treated as 'good enough'",
+        "abuse_scenario": "CI pipeline accepts PARTIAL fingerprints, gates on hash match",
+        "invalidating_if_missing": true,
+        "required_reading": "PARTIAL means incomplete analysis, not partial success",
+        "severity": "HIGH"
+      },
+      "status_metadata": {
+        "misinterpretation": "Optional field, might be ignored",
+        "abuse_scenario": "Consumer checks status=PARTIAL but ignores failed_files list",
+        "invalidating_if_missing": false,
+        "required_reading": "If status=PARTIAL, must check status_metadata for scope",
+        "severity": "MEDIUM"
+      },
+      "total_files": {
+        "misinterpretation": "Number implies all files processed",
+        "abuse_scenario": "Consumer trusts total_files count without checking status",
+        "invalidating_if_missing": false,
+        "required_reading": "Only valid if fingerprint_status=COMPLETE",
+        "severity": "MEDIUM"
+      },
+      "risk_signals": {
+        "misinterpretation": "Signals imply security findings",
+        "abuse_scenario": "Consumer treats risk_signals as security vulnerabilities",
+        "invalidating_if_missing": false,
+        "required_reading": "Risk signals are static analysis patterns, not verified vulnerabilities",
+        "severity": "MEDIUM"
+      }
+    },
+    "agent_report_json_fields": {
+      "execution_status": {
+        "misinterpretation": "Hidden in metadata, might be ignored",
+        "abuse_scenario": "Consumer reads findings array, ignores metadata.execution_status=FAILED",
+        "invalidating_if_missing": true,
+        "required_reading": "Must check metadata.execution_status before trusting findings",
+        "severity": "HIGH"
+      },
+      "findings": {
+        "misinterpretation": "Empty array implies 'no issues found'",
+        "abuse_scenario": "Consumer sees empty findings[], assumes security verified",
+        "invalidating_if_missing": false,
+        "required_reading": "Empty findings with execution_status=FAILED means analysis failed, not 'no issues'",
+        "severity": "HIGH"
+      },
+      "summary": {
+        "misinterpretation": "Summary might not mention agent failures",
+        "abuse_scenario": "Consumer reads summary only, misses execution_status=PARTIAL",
+        "invalidating_if_missing": false,
+        "required_reading": "Summary is human-readable, check execution_status for machine consumption",
+        "severity": "MEDIUM"
+      },
+      "metadata.agents_failed": {
+        "misinterpretation": "Nested in metadata, easy to miss",
+        "abuse_scenario": "Consumer checks execution_status=PARTIAL but doesn't check which agents failed",
+        "invalidating_if_missing": false,
+        "required_reading": "If execution_status=PARTIAL, must check failed_agent_names",
+        "severity": "LOW"
+      }
+    },
+    "trace_json_fields": {
+      "_non_deterministic_fields": {
+        "misinterpretation": "Underscore prefix suggests 'internal', might be ignored",
+        "abuse_scenario": "Consumer compares traces byte-for-byte, ignores _non_deterministic_fields",
+        "invalidating_if_missing": false,
+        "required_reading": "Must filter these fields for reproducible comparisons",
+        "severity": "MEDIUM"
+      },
+      "execution_time": {
+        "misinterpretation": "Time implies performance measurement",
+        "abuse_scenario": "Consumer uses execution_time for performance benchmarking",
+        "invalidating_if_missing": false,
+        "required_reading": "Non-deterministic, varies between runs",
+        "severity": "LOW"
+      },
+      "risk_score": {
+        "misinterpretation": "Score implies security risk assessment",
+        "abuse_scenario": "Consumer treats risk_score as security rating",
+        "invalidating_if_missing": false,
+        "required_reading": "Risk score is rule-based heuristic, not security guarantee",
+        "severity": "MEDIUM"
+      },
+      "exit_code": {
+        "misinterpretation": "0 implies success, non-zero implies failure",
+        "abuse_scenario": "Consumer gates on exit_code=0, ignores risk_score",
+        "invalidating_if_missing": false,
+        "required_reading": "Exit code reflects script execution, not security",
+        "severity": "LOW"
+      }
+    },
+    "text_output_fields": {
+      "summary_lines": {
+        "misinterpretation": "Human-readable summaries might omit critical status",
+        "abuse_scenario": "Human reads text output, misses status indicators",
+        "invalidating_if_missing": false,
+        "required_reading": "Text output is human-readable, JSON is authoritative",
+        "severity": "MEDIUM"
+      },
+      "risk_score_explanation": {
+        "misinterpretation": "Explanation might imply security guarantee",
+        "abuse_scenario": "Human reads explanation, treats as security assessment",
+        "invalidating_if_missing": false,
+        "required_reading": "Explanation describes rule-based scoring, not security verification",
+        "severity": "LOW"
+      }
+    }
+  },
+  "semantic_drift_analysis": {
+    "name_based_meanings": {
+      "Secure Code Reasoner": {
+        "implied_meaning": "Tool provides security verification",
+        "drift_risk": "Future maintainer adds 'security' features without updating trust docs",
+        "prevention": "TRUST_STATEMENT.md must explicitly state 'not a security tool'",
+        "invariant_required": "README.md must link to TRUST_STATEMENT.md in first 50 lines",
+        "severity": "HIGH"
+      },
+      "fingerprint_status": {
+        "implied_meaning": "Status indicates completion state",
+        "drift_risk": "Future maintainer changes PARTIAL to WARN or adds OK status",
+        "prevention": "Status enum must be: COMPLETE, PARTIAL, INVALID only",
+        "invariant_required": "Test asserts status in (COMPLETE, PARTIAL, INVALID)",
+        "severity": "MEDIUM"
+      },
+      "execution_status": {
+        "implied_meaning": "Status indicates agent execution success",
+        "drift_risk": "Future maintainer adds SUCCESS status, conflates with COMPLETE",
+        "prevention": "Status enum must be: COMPLETE, PARTIAL, FAILED only",
+        "invariant_required": "Test asserts execution_status in (COMPLETE, PARTIAL, FAILED)",
+        "severity": "MEDIUM"
+      },
+      "deterministic": {
+        "implied_meaning": "All outputs are byte-for-byte reproducible",
+        "drift_risk": "Future maintainer adds non-deterministic features without updating docs",
+        "prevention": "Documentation must explicitly list non-deterministic fields",
+        "invariant_required": "Test asserts fingerprint hash is deterministic (excludes traces)",
+        "severity": "HIGH"
+      }
+    },
+    "default_value_meanings": {
+      "status=COMPLETE": {
+        "implied_meaning": "Default implies success",
+        "drift_risk": "Future maintainer changes default to PARTIAL 'for safety'",
+        "prevention": "Default must remain COMPLETE, PARTIAL must be explicit",
+        "invariant_required": "Test asserts default status is COMPLETE",
+        "severity": "MEDIUM"
+      },
+      "execution_status=COMPLETE": {
+        "implied_meaning": "Default implies all agents succeeded",
+        "drift_risk": "Future maintainer changes default to PARTIAL",
+        "prevention": "Default must remain COMPLETE, failures must be explicit",
+        "invariant_required": "Test asserts default execution_status is COMPLETE",
+        "severity": "MEDIUM"
+      }
+    },
+    "summary_meanings": {
+      "No agents completed successfully": {
+        "implied_meaning": "Summary clearly states failure",
+        "drift_risk": "Future maintainer changes to 'No findings' or 'Analysis complete'",
+        "prevention": "Summary must explicitly state 'failed' or 'no agents completed'",
+        "invariant_required": "Test asserts failure summaries contain 'failed' or 'no agents'",
+        "severity": "LOW"
+      }
+    }
+  },
+  "authority_escalation_paths": {
+    "quoted_statements": [
+      {
+        "statement": "\"Verified\"",
+        "context": "VERIFY.md states 'Verified means code executes according to documented behavior'",
+        "escalation": "Quoted as 'Verified by adversarial audit' implies security verification",
+        "mitigation": "TRUST_STATEMENT.md must state 'VERIFIED ≠ SECURE' explicitly",
+        "severity": "HIGH"
+      },
+      {
+        "statement": "\"Deterministic\"",
+        "context": "README.md states 'All operations produce deterministic, reproducible results'",
+        "escalation": "Quoted as 'Deterministic security analysis' implies verified security",
+        "mitigation": "Documentation must qualify 'deterministic for static analysis, traces include timestamps'",
+        "severity": "MEDIUM"
+      },
+      {
+        "statement": "\"Adversarial audit complete\"",
+        "context": "Level-2 and Level-3 audit reports exist",
+        "escalation": "Quoted as 'Security audit complete' implies security verification",
+        "mitigation": "Audit reports must explicitly state 'not a security audit'",
+        "severity": "HIGH"
+      },
+      {
+        "statement": "\"Rule-based\"",
+        "context": "ARCHITECTURE.md states 'rule-based and deterministic'",
+        "escalation": "Quoted as 'Rule-based security analysis' implies security rules",
+        "mitigation": "Documentation must state 'rule-based code analysis, not security rules'",
+        "severity": "MEDIUM"
+      }
+    ],
+    "combined_authority": [
+      {
+        "combination": "Verified + Deterministic + Adversarial Audit",
+        "false_authority": "Implies security-verified, deterministic security analysis",
+        "reality": "Behavioral verification, deterministic static analysis, adversarial code audit",
+        "mitigation": "TRUST_STATEMENT.md must explicitly disclaim security verification",
+        "severity": "HIGH"
+      },
+      {
+        "combination": "Status=COMPLETE + fingerprint_hash present",
+        "false_authority": "Implies complete and correct analysis",
+        "reality": "COMPLETE means no file processing errors, not correctness guarantee",
+        "mitigation": "Documentation must state 'COMPLETE means no errors, not correctness'",
+        "severity": "MEDIUM"
+      }
+    ]
+  },
+  "regression_risk_mapping": {
+    "silent_regressions": [
+      {
+        "change": "Reintroduce TypeError → empty set conversion",
+        "preserves_interface": true,
+        "violates_guarantee": "No silent corruption",
+        "detection": "Test asserts TypeError raises exception, never returns empty set",
+        "tripwire_test": "test_fingerprinting_models.py::test_typeerror_raises_not_empty_set",
+        "severity": "HIGH"
+      },
+      {
+        "change": "Change fingerprint_status default to PARTIAL",
+        "preserves_interface": true,
+        "violates_guarantee": "Default implies success",
+        "detection": "Test asserts default status is COMPLETE",
+        "tripwire_test": "test_fingerprinting_models.py::test_default_status_complete",
+        "severity": "MEDIUM"
+      },
+      {
+        "change": "Catch exceptions in agent execution, return empty report",
+        "preserves_interface": true,
+        "violates_guarantee": "Failures must be explicit",
+        "detection": "Test asserts agent failures set execution_status=FAILED",
+        "tripwire_test": "test_agents_implementation.py::test_agent_failure_sets_status",
+        "severity": "HIGH"
+      },
+      {
+        "change": "Add timestamps to fingerprint hash calculation",
+        "preserves_interface": true,
+        "violates_guarantee": "Fingerprints are deterministic",
+        "detection": "Test asserts same repository produces same hash",
+        "tripwire_test": "test_fingerprinting_implementation.py::test_deterministic_hash",
+        "severity": "HIGH"
+      },
+      {
+        "change": "Remove status fields from JSON output",
+        "preserves_interface": false,
+        "violates_guarantee": "Status must be visible",
+        "detection": "Test asserts fingerprint_status in JSON output",
+        "tripwire_test": "test_reporting_models.py::test_status_in_json_output",
+        "severity": "MEDIUM"
+      },
+      {
+        "change": "Change PARTIAL to WARN or add OK status",
+        "preserves_interface": true,
+        "violates_guarantee": "Status enum is fixed",
+        "detection": "Test asserts status in (COMPLETE, PARTIAL, INVALID)",
+        "tripwire_test": "test_fingerprinting_models.py::test_status_enum_constraint",
+        "severity": "MEDIUM"
+      }
+    ]
+  },
+  "misuse_scenarios": [
+    {
+      "scenario": "CI Pipeline Gates on Fingerprint Hash",
+      "type": "accidental",
+      "description": "CI pipeline checks fingerprint_hash matches expected value, ignores fingerprint_status",
+      "harm": "Partial fingerprints pass CI gates, downstream systems trust incomplete analysis",
+      "prevention": "CI must check fingerprint_status=COMPLETE before trusting hash",
+      "current_documentation": "Status field exists but not emphasized in CI examples",
+      "severity": "HIGH",
+      "mitigation_required": true
+    },
+    {
+      "scenario": "Security Report Quotes Tool as 'Verified'",
+      "type": "negligent",
+      "description": "Security researcher quotes 'Verified by adversarial audit' in compliance report",
+      "harm": "False authority in security documentation, compliance risk",
+      "prevention": "TRUST_STATEMENT.md must explicitly state 'not a security tool'",
+      "current_documentation": "TRUST_STATEMENT.md exists but might be missed",
+      "severity": "HIGH",
+      "mitigation_required": true
+    },
+    {
+      "scenario": "JSON Consumer Ignores execution_status",
+      "type": "accidental",
+      "description": "Downstream tool reads findings[] array, ignores metadata.execution_status=FAILED",
+      "harm": "Empty findings treated as 'no issues' when analysis actually failed",
+      "prevention": "execution_status must be top-level or prominently displayed",
+      "current_documentation": "Status is in metadata, might be missed",
+      "severity": "MEDIUM",
+      "mitigation_required": true
+    },
+    {
+      "scenario": "Human Reader Skims Text Output Only",
+      "type": "accidental",
+      "description": "Human reads text output summary, misses status indicators in JSON",
+      "harm": "Partial analysis treated as complete",
+      "prevention": "Text output must prominently display status",
+      "current_documentation": "Text formatter doesn't emphasize status",
+      "severity": "MEDIUM",
+      "mitigation_required": true
+    },
+    {
+      "scenario": "Future Maintainer Adds 'Security' Features",
+      "type": "negligent",
+      "description": "Maintainer adds security scanning features without updating trust docs",
+      "harm": "Tool name + new features implies security tool",
+      "prevention": "TRUST_STATEMENT.md must be updated for any security-related changes",
+      "current_documentation": "No process for updating trust docs",
+      "severity": "MEDIUM",
+      "mitigation_required": true
+    },
+    {
+      "scenario": "Risk Score Treated as Security Rating",
+      "type": "accidental",
+      "description": "Consumer treats risk_score as security vulnerability rating",
+      "harm": "False security confidence, misallocation of resources",
+      "prevention": "Documentation must explicitly state risk_score is heuristic, not security rating",
+      "current_documentation": "Documentation exists but might be missed",
+      "severity": "LOW",
+      "mitigation_required": false
+    }
+  ],
+  "verdict_integrity": {
+    "current_verdict": "CONDITIONAL",
+    "misinterpretation_risks": [
+      {
+        "risk": "CONDITIONAL might be read as 'mostly safe'",
+        "reality": "CONDITIONAL means 'safe under documented assumptions, not safe under misuse'",
+        "mitigation": "Verdict must explicitly state 'CONDITIONAL = requires careful reading of trust docs'",
+        "severity": "MEDIUM"
+      },
+      {
+        "risk": "CONDITIONAL + mitigations implemented might imply 'now safe'",
+        "reality": "Mitigations reduce risk but don't eliminate misuse potential",
+        "mitigation": "Verdict must state 'CONDITIONAL even after mitigations'",
+        "severity": "LOW"
+      }
+    ],
+    "recommended_verdict": "CONDITIONALLY SAFE",
+    "justification": "System is epistemically safe under documented assumptions and careful reading. Not safe under misuse, skimming, or authority laundering. Requires explicit trust boundary acknowledgment."
+  },
+  "required_invariants": [
+    {
+      "invariant": "fingerprint_status must be COMPLETE, PARTIAL, or INVALID only",
+      "enforcement": "Test asserts status enum constraint",
+      "file": "tests/test_fingerprinting_models.py",
+      "test_name": "test_status_enum_constraint"
+    },
+    {
+      "invariant": "execution_status must be COMPLETE, PARTIAL, or FAILED only",
+      "enforcement": "Test asserts execution_status enum constraint",
+      "file": "tests/test_agents_models.py",
+      "test_name": "test_execution_status_enum_constraint"
+    },
+    {
+      "invariant": "TypeError must never return empty set",
+      "enforcement": "Test asserts TypeError raises exception",
+      "file": "tests/test_fingerprinting_models.py",
+      "test_name": "test_typeerror_raises_not_empty_set"
+    },
+    {
+      "invariant": "Fingerprint hash must be deterministic (excludes traces)",
+      "enforcement": "Test asserts same repository produces same hash",
+      "file": "tests/test_fingerprinting_implementation.py",
+      "test_name": "test_deterministic_hash"
+    },
+    {
+      "invariant": "fingerprint_status must be present in JSON output",
+      "enforcement": "Test asserts fingerprint_status in to_dict() output",
+      "file": "tests/test_reporting_models.py",
+      "test_name": "test_status_in_json_output"
+    },
+    {
+      "invariant": "execution_status must be present in agent report metadata",
+      "enforcement": "Test asserts execution_status in metadata",
+      "file": "tests/test_agents_models.py",
+      "test_name": "test_execution_status_in_metadata"
+    },
+    {
+      "invariant": "Default fingerprint_status must be COMPLETE",
+      "enforcement": "Test asserts default status",
+      "file": "tests/test_fingerprinting_models.py",
+      "test_name": "test_default_status_complete"
+    },
+    {
+      "invariant": "Agent failures must set execution_status=FAILED",
+      "enforcement": "Test asserts agent failure sets status",
+      "file": "tests/test_agents_implementation.py",
+      "test_name": "test_agent_failure_sets_status"
+    }
+  ],
+  "recommended_hard_barriers": [
+    {
+      "barrier": "README.md must link to TRUST_STATEMENT.md in first 50 lines",
+      "type": "structural",
+      "rationale": "Prevents users from missing trust boundaries",
+      "severity": "HIGH"
+    },
+    {
+      "barrier": "TRUST_STATEMENT.md must explicitly state 'VERIFIED ≠ SECURE'",
+      "type": "explicit",
+      "rationale": "Prevents authority laundering",
+      "severity": "HIGH"
+    },
+    {
+      "barrier": "All audit reports must state 'not a security audit'",
+      "type": "explicit",
+      "rationale": "Prevents false authority",
+      "severity": "HIGH"
+    },
+    {
+      "barrier": "Text formatter must prominently display status",
+      "type": "structural",
+      "rationale": "Prevents human readers from missing status",
+      "severity": "MEDIUM"
+    },
+    {
+      "barrier": "execution_status should be top-level in JSON, not nested in metadata",
+      "type": "structural",
+      "rationale": "Prevents JSON consumers from missing status",
+      "severity": "MEDIUM"
+    },
+    {
+      "barrier": "CI examples must check fingerprint_status=COMPLETE",
+      "type": "documentation",
+      "rationale": "Prevents CI misuse",
+      "severity": "MEDIUM"
+    }
+  ],
+  "non_obvious_risks": [
+    {
+      "risk": "Status fields exist but are easy to ignore",
+      "description": "fingerprint_status and execution_status are present but nested/optional",
+      "severity": "MEDIUM",
+      "mitigation": "Make status fields required and prominent"
+    },
+    {
+      "risk": "Text output doesn't emphasize status",
+      "description": "Human-readable output might not prominently display PARTIAL/FAILED status",
+      "severity": "MEDIUM",
+      "mitigation": "Text formatter must display status prominently"
+    },
+    {
+      "risk": "Trust statement might be missed",
+      "description": "TRUST_STATEMENT.md exists but users might not read it",
+      "severity": "HIGH",
+      "mitigation": "README.md must link to trust statement prominently"
+    },
+    {
+      "risk": "Default values imply success",
+      "description": "status=COMPLETE default might make PARTIAL look like error",
+      "severity": "LOW",
+      "mitigation": "Documentation must clarify PARTIAL is valid but incomplete"
+    },
+    {
+      "risk": "Non-deterministic fields might be used for comparison",
+      "description": "_non_deterministic_fields might be ignored in comparisons",
+      "severity": "MEDIUM",
+      "mitigation": "Documentation must emphasize filtering these fields"
+    }
+  ],
+  "final_judgment": {
+    "verdict": "CONDITIONALLY SAFE",
+    "justification": "System is epistemically safe under documented assumptions and careful reading. Not safe under misuse, skimming, or authority laundering. Requires explicit trust boundary acknowledgment. Mitigations reduce but do not eliminate misuse potential.",
+    "required_actions": [
+      "Add invariant tests for status enums",
+      "Add README link to TRUST_STATEMENT.md",
+      "Update text formatter to prominently display status",
+      "Consider moving execution_status to top-level in JSON",
+      "Add CI examples that check status fields",
+      "Update audit reports to explicitly state 'not a security audit'"
+    ],
+    "epistemic_safety_level": "CONDITIONAL",
+    "misuse_resistance_level": "MODERATE",
+    "semantic_drift_resistance": "MODERATE",
+    "authority_laundering_resistance": "MODERATE"
+  }
+}

@@ -1,0 +1,559 @@
+{
+  "report_metadata": {
+    "report_type": "Failure-Oriented Adversarial Verification & Validation (Level 2)",
+    "project": "secure-code-reasoner",
+    "version": "0.1.0",
+    "report_date": "2024-12-17",
+    "audit_authority": "Adversarial V&V Agent (Level 2)",
+    "methodology": "Failure-oriented, hostile, assumption-breaking",
+    "ground_truth_commit": "24527a755dcee0da9780bf934d41dfcf686ae65b"
+  },
+  "phase_a_negative_requirements": {
+    "what_must_never_happen": [
+      {
+        "requirement": "Fingerprints must never be non-deterministic",
+        "enforcement": "Uses sorted() for ordering",
+        "failure_mode": "Timestamps in ExecutionTrace break determinism",
+        "severity": "MEDIUM",
+        "detected": false
+      },
+      {
+        "requirement": "Agent failures must never be silent",
+        "enforcement": "Logged but execution continues",
+        "failure_mode": "Agent failure logged but coordinator continues, returns empty report",
+        "severity": "MEDIUM",
+        "detected": true,
+        "misleading": true
+      },
+      {
+        "requirement": "Path traversal must never occur",
+        "enforcement": "Path.resolve() used but no explicit boundary check",
+        "failure_mode": "Symlinks or path manipulation could escape repository root",
+        "severity": "HIGH",
+        "detected": false
+      },
+      {
+        "requirement": "File deletion during analysis must never cause silent corruption",
+        "enforcement": "No handling for files disappearing mid-run",
+        "failure_mode": "File deleted during fingerprinting causes exception, logged as warning, partial fingerprint returned",
+        "severity": "MEDIUM",
+        "detected": true,
+        "misleading": true
+      }
+    ],
+    "contradicts_naive_belief": [
+      {
+        "belief": "Tool provides security sandboxing",
+        "reality": "Python-level hooks, bypassable via C extensions, ctypes, os.open()",
+        "evidence": "trace_wrapper.py uses builtins.open override, not OS-level",
+        "misleading_potential": "HIGH"
+      },
+      {
+        "belief": "Verification implies security",
+        "reality": "VERIFY.md explicitly states VERIFIED ≠ SECURE",
+        "evidence": "VERIFY.md line 5",
+        "misleading_potential": "LOW"
+      },
+      {
+        "belief": "All agents always run",
+        "reality": "Agent failures are caught, logged, execution continues",
+        "evidence": "coordinator.py line 38-40",
+        "misleading_potential": "MEDIUM"
+      },
+      {
+        "belief": "Fingerprints are always deterministic",
+        "reality": "ExecutionTrace includes timestamps, breaking determinism",
+        "evidence": "tracer.py line 245 uses time.time()",
+        "misleading_potential": "MEDIUM"
+      }
+    ],
+    "malformed_input_scenarios": [
+      {
+        "scenario": "Path resolves outside repository root via symlink",
+        "handling": "No explicit boundary check",
+        "result": "Potential information disclosure",
+        "severity": "HIGH"
+      },
+      {
+        "scenario": "File deleted during fingerprinting",
+        "handling": "Exception caught, logged as warning, partial fingerprint",
+        "result": "Silent partial failure",
+        "severity": "MEDIUM"
+      },
+      {
+        "scenario": "Subprocess output exceeds max_output_size",
+        "handling": "Truncated with message",
+        "result": "Explicit truncation, detectable",
+        "severity": "LOW"
+      },
+      {
+        "scenario": "Adversarial environment variables",
+        "handling": "Environment copied from parent, SCR_* vars set",
+        "result": "Parent env vars leak into subprocess",
+        "severity": "MEDIUM"
+      }
+    ]
+  },
+  "phase_b_invariant_checking": {
+    "invariants": [
+      {
+        "invariant": "Fingerprints must be deterministic across runs",
+        "enforcement_location": "fingerprinter.py uses sorted() for ordering",
+        "failure_mode": "Timestamps in ExecutionTrace break determinism for trace outputs",
+        "detected": false,
+        "classification": "PARTIAL_VIOLATION"
+      },
+      {
+        "invariant": "Agent ordering must not change merged output",
+        "enforcement_location": "coordinator.py _merge_findings uses sorted()",
+        "failure_mode": "Agent execution order matters if agents have side effects (they don't)",
+        "detected": false,
+        "classification": "SAFE"
+      },
+      {
+        "invariant": "Verification must never imply security guarantees",
+        "enforcement_location": "VERIFY.md explicitly states VERIFIED ≠ SECURE",
+        "failure_mode": "User might skip documentation, infer from tool name",
+        "detected": false,
+        "classification": "DOCUMENTED_BUT_MISLEADING_NAME"
+      },
+      {
+        "invariant": "CLI output formats must remain parseable under error",
+        "enforcement_location": "CLI catches exceptions, outputs error message",
+        "failure_mode": "JSON formatter might produce invalid JSON on exception",
+        "detected": false,
+        "classification": "POTENTIAL_VIOLATION"
+      }
+    ]
+  },
+  "phase_c_silent_failure_search": {
+    "silent_failures": [
+      {
+        "location": "fingerprinter.py:277",
+        "pattern": "except Exception as e: logger.warning(...)",
+        "classification": "MISLEADING",
+        "justification": "File processing failure logged but fingerprint continues, partial data returned",
+        "user_visible": false
+      },
+      {
+        "location": "coordinator.py:38",
+        "pattern": "except Exception as e: logger.error(...); continue",
+        "classification": "MISLEADING",
+        "justification": "Agent failure logged but execution continues, empty report possible",
+        "user_visible": false
+      },
+      {
+        "location": "tracer.py:199",
+        "pattern": "except Exception as e: logger.debug(...)",
+        "classification": "SAFE",
+        "justification": "Trace parsing failure logged at debug level, non-critical",
+        "user_visible": false
+      },
+      {
+        "location": "fingerprinter.py:298",
+        "pattern": "except TypeError: artifacts_set = frozenset()",
+        "classification": "DANGEROUS",
+        "justification": "TypeError silently converted to empty set, fingerprint hash changes",
+        "user_visible": false
+      },
+      {
+        "location": "trace_wrapper.py:54,61",
+        "pattern": "except ImportError: pass",
+        "classification": "SAFE",
+        "justification": "Optional imports, graceful degradation",
+        "user_visible": false
+      }
+    ],
+    "fallback_paths": [
+      {
+        "location": "coordinator.py:42",
+        "fallback": "Returns empty AgentReport if all agents fail",
+        "classification": "MISLEADING",
+        "justification": "Empty report looks like success, no findings"
+      },
+      {
+        "location": "fingerprinter.py:298",
+        "fallback": "Empty frozenset on TypeError",
+        "classification": "DANGEROUS",
+        "justification": "Silent corruption of fingerprint data"
+      }
+    ],
+    "default_values": [
+      {
+        "location": "tracer.py:58",
+        "default": "stdout = \"\", stderr = \"\"",
+        "classification": "SAFE",
+        "justification": "Explicit initialization, not masking failure"
+      }
+    ]
+  },
+  "phase_d_trust_boundary_violations": {
+    "boundaries": [
+      {
+        "boundary": "User input → CLI",
+        "assumptions": [
+          "Path exists and is directory/file",
+          "Path is not maliciously constructed",
+          "User has read permissions"
+        ],
+        "validation": "click.Path(exists=True) validates existence",
+        "violation_scenario": "Symlink to parent directory, path traversal",
+        "failure_obvious": false,
+        "severity": "HIGH"
+      },
+      {
+        "boundary": "CLI → internal API",
+        "assumptions": [
+          "Path.resolve() keeps path within expected bounds",
+          "No race conditions on file access"
+        ],
+        "validation": "Path.resolve() used, no explicit boundary check",
+        "violation_scenario": "Symlink escape, file deletion during analysis",
+        "failure_obvious": false,
+        "severity": "MEDIUM"
+      },
+      {
+        "boundary": "Internal API → subprocess",
+        "assumptions": [
+          "Environment variables are safe",
+          "Script path is not modified",
+          "Subprocess isolation is effective"
+        ],
+        "validation": "Environment copied from parent, SCR_* vars set",
+        "violation_scenario": "Parent env vars leak, subprocess isolation bypassed",
+        "failure_obvious": false,
+        "severity": "MEDIUM"
+      },
+      {
+        "boundary": "Subprocess → tracer",
+        "assumptions": [
+          "Trace output format is correct",
+          "No injection in trace metadata"
+        ],
+        "validation": "Parsing with exception handling",
+        "violation_scenario": "Malformed trace output causes parsing failure, silently ignored",
+        "failure_obvious": false,
+        "severity": "LOW"
+      },
+      {
+        "boundary": "Tracer → report",
+        "assumptions": [
+          "Report data is valid",
+          "Output path is writable",
+          "No encoding issues"
+        ],
+        "validation": "UTF-8 encoding, exception handling",
+        "violation_scenario": "Encoding error, disk full, permission denied",
+        "failure_obvious": true,
+        "severity": "LOW"
+      }
+    ]
+  },
+  "phase_e_misuse_misinterpretation_attacks": {
+    "user_personas": [
+      {
+        "persona": "Skips README, only reads CLI help",
+        "can_believe_false": [
+          {
+            "belief": "Tool provides security sandboxing",
+            "enabling_text": "CLI help says 'Trace execution of a script' without security warnings",
+            "severity": "MEDIUM"
+          }
+        ]
+      },
+      {
+        "persona": "Only sees badges",
+        "can_believe_false": [
+          {
+            "belief": "Tool is production-ready",
+            "enabling_text": "CI badge shows green, no 'experimental' badge",
+            "severity": "LOW"
+          }
+        ]
+      },
+      {
+        "persona": "Only sees output JSON",
+        "can_believe_false": [
+          {
+            "belief": "All agents ran successfully",
+            "enabling_text": "JSON shows findings, no 'agents_failed' field if all fail",
+            "severity": "MEDIUM"
+          },
+          {
+            "belief": "Fingerprint is complete",
+            "enabling_text": "JSON shows fingerprint_hash, no indication of partial failure",
+            "severity": "MEDIUM"
+          }
+        ]
+      },
+      {
+        "persona": "Quotes tool in security report",
+        "can_believe_false": [
+          {
+            "belief": "Tool verified security",
+            "enabling_text": "Tool name 'Secure Code Reasoner' implies security verification",
+            "severity": "HIGH"
+          },
+          {
+            "belief": "Execution was sandboxed",
+            "enabling_text": "Trace output shows no network/file operations, implies blocking worked",
+            "severity": "MEDIUM"
+          }
+        ]
+      }
+    ],
+    "mitigations": [
+      {
+        "risk": "Tool name implies security",
+        "mitigation": "README explicitly states research tool, not security tool",
+        "effectiveness": "MEDIUM - name still misleading"
+      },
+      {
+        "risk": "Agent failures silent",
+        "mitigation": "Metadata includes agents_run, agents_total",
+        "effectiveness": "HIGH - if user checks metadata"
+      },
+      {
+        "risk": "Partial fingerprint not indicated",
+        "mitigation": "Warnings logged but not in output",
+        "effectiveness": "LOW - user must check logs"
+      }
+    ]
+  },
+  "phase_f_output_integrity_reproducibility": {
+    "reproducibility_claims": [
+      {
+        "claim": "Fingerprints are deterministic",
+        "verification": "Uses sorted() for ordering, hashlib.sha256 for hash",
+        "violation": "ExecutionTrace includes time.time() timestamps",
+        "severity": "MEDIUM"
+      },
+      {
+        "claim": "Reports are reproducible",
+        "verification": "Deterministic sorting in formatters",
+        "violation": "Timestamps in trace events break reproducibility",
+        "severity": "MEDIUM"
+      }
+    ],
+    "non_deterministic_elements": [
+      {
+        "element": "TraceEvent.timestamp",
+        "source": "time.time() in tracer.py:245",
+        "impact": "Same script produces different trace JSON",
+        "mitigation": "None - timestamps are part of trace semantics"
+      },
+      {
+        "element": "ExecutionTrace.execution_time",
+        "source": "time.time() difference",
+        "impact": "Execution time varies, affects risk score",
+        "mitigation": "None - execution time is meaningful"
+      }
+    ],
+    "environment_leakage": [
+      {
+        "element": "Environment variables in subprocess",
+        "source": "tracer.py:164 copies os.environ",
+        "impact": "Parent env vars visible to traced script",
+        "severity": "MEDIUM"
+      },
+      {
+        "element": "Host-specific paths",
+        "source": "script_path in ExecutionTrace",
+        "impact": "Absolute paths leak into output",
+        "severity": "LOW - documented"
+      }
+    ],
+    "hidden_randomness": [
+      {
+        "location": "None found",
+        "justification": "No random number generation, no non-deterministic operations beyond timestamps"
+      }
+    ],
+    "os_dependent_behavior": [
+      {
+        "behavior": "Path separator differences",
+        "source": "Uses Path.as_posix() for normalization",
+        "impact": "Windows vs Unix paths normalized",
+        "severity": "LOW - handled correctly"
+      },
+      {
+        "behavior": "File system case sensitivity",
+        "source": "No explicit handling",
+        "impact": "Case-sensitive vs case-insensitive FS differences",
+        "severity": "LOW - unlikely to cause issues"
+      }
+    ]
+  },
+  "phase_g_failure_surface_mapping": {
+    "failure_modes": [
+      {
+        "mode": "Path traversal via symlink",
+        "breaks_first": true,
+        "breaks_silently": true,
+        "breaks_catastrophically": false,
+        "breaks_deceptively_clean": true,
+        "severity": "HIGH",
+        "location": "fingerprinter.py:254, tracer.py:47"
+      },
+      {
+        "mode": "Agent failure silent",
+        "breaks_first": false,
+        "breaks_silently": true,
+        "breaks_catastrophically": false,
+        "breaks_deceptively_clean": true,
+        "severity": "MEDIUM",
+        "location": "coordinator.py:38"
+      },
+      {
+        "mode": "File deletion during analysis",
+        "breaks_first": false,
+        "breaks_silently": true,
+        "breaks_catastrophically": false,
+        "breaks_deceptively_clean": true,
+        "severity": "MEDIUM",
+        "location": "fingerprinter.py:277"
+      },
+      {
+        "mode": "TypeError in fingerprint hash",
+        "breaks_first": false,
+        "breaks_silently": true,
+        "breaks_catastrophically": false,
+        "breaks_deceptively_clean": true,
+        "severity": "HIGH",
+        "location": "fingerprinter.py:298"
+      },
+      {
+        "mode": "Subprocess timeout",
+        "breaks_first": false,
+        "breaks_silently": false,
+        "breaks_catastrophically": false,
+        "breaks_deceptively_clean": false,
+        "severity": "LOW",
+        "location": "tracer.py:71"
+      },
+      {
+        "mode": "Output truncation",
+        "breaks_first": false,
+        "breaks_silently": false,
+        "breaks_catastrophically": false,
+        "breaks_deceptively_clean": false,
+        "severity": "LOW",
+        "location": "tracer.py:170"
+      }
+    ]
+  },
+  "phase_h_verdict_hardening": {
+    "previous_audit_verdict": "CONDITIONAL",
+    "revised_verdict": "CONDITIONAL",
+    "hardening_justification": "Previous audit was technically correct but identified risks are more severe than initially assessed. Silent failures, path traversal risks, and misleading outputs require explicit mitigation.",
+    "claims_to_downgrade": [
+      {
+        "claim": "Fingerprints are always deterministic",
+        "current": "VERIFIED",
+        "revised": "QUALIFIED",
+        "reason": "ExecutionTrace includes timestamps, breaking determinism for trace outputs"
+      },
+      {
+        "claim": "All agents always run",
+        "current": "VERIFIED",
+        "revised": "QUALIFIED",
+        "reason": "Agent failures are caught and logged but execution continues, empty report possible"
+      },
+      {
+        "claim": "Path validation prevents traversal",
+        "current": "VERIFIED",
+        "revised": "FALSE",
+        "reason": "No explicit boundary check, symlinks can escape repository root"
+      }
+    ],
+    "claims_to_strengthen": [
+      {
+        "claim": "Tool is research-oriented, not security tool",
+        "current": "VERIFIED",
+        "revised": "VERIFIED",
+        "reason": "Documentation is explicit, though name is misleading"
+      },
+      {
+        "claim": "Python-level restrictions are bypassable",
+        "current": "VERIFIED",
+        "revised": "VERIFIED",
+        "reason": "Documentation accurately describes limitations"
+      }
+    ],
+    "new_risks_identified": [
+      {
+        "risk": "Path traversal via symlink",
+        "severity": "HIGH",
+        "mitigation_required": true
+      },
+      {
+        "risk": "Silent agent failure",
+        "severity": "MEDIUM",
+        "mitigation_required": true
+      },
+      {
+        "risk": "TypeError silently converted to empty set",
+        "severity": "HIGH",
+        "mitigation_required": true
+      },
+      {
+        "risk": "Partial fingerprint not indicated in output",
+        "severity": "MEDIUM",
+        "mitigation_required": true
+      }
+    ]
+  },
+  "misinterpretation_risk_register": {
+    "high_risk_scenarios": [
+      {
+        "scenario": "Security researcher quotes tool in report",
+        "misinterpretation": "Tool name implies security verification",
+        "mitigation": "Add explicit warning in CLI help and output"
+      },
+      {
+        "scenario": "User skips README, uses tool on untrusted code",
+        "misinterpretation": "Assumes sandboxing is effective",
+        "mitigation": "Add security warning to CLI help"
+      }
+    ],
+    "medium_risk_scenarios": [
+      {
+        "scenario": "User only sees JSON output",
+        "misinterpretation": "Assumes all agents ran, fingerprint is complete",
+        "mitigation": "Include failure indicators in JSON output"
+      },
+      {
+        "scenario": "User sees empty agent report",
+        "misinterpretation": "Assumes no findings vs all agents failed",
+        "mitigation": "Distinguish between 'no findings' and 'agent failure'"
+      }
+    ]
+  },
+  "revised_trust_statement": {
+    "statement": "Secure Code Reasoner is a research tool for code analysis. It provides Python-level execution restrictions that are bypassable and should not be relied upon for security. Fingerprints are deterministic for static analysis but include non-deterministic timestamps in execution traces. Agent failures may be silent, and path traversal protection is incomplete. Use only on trusted code in isolated environments.",
+    "explicit_limitations": [
+      "Not a security tool despite name",
+      "Python-level restrictions bypassable",
+      "Path traversal protection incomplete",
+      "Silent failures possible",
+      "Non-deterministic timestamps in traces"
+    ]
+  },
+  "final_verdict": {
+    "status": "CONDITIONAL",
+    "justification": "System demonstrates functional correctness but has significant silent failure modes, incomplete path validation, and potential for misinterpretation. Previous audit was technically correct but underestimated social risks. Critical issues require mitigation before production use.",
+    "blocking_issues": [
+      "Path traversal risk (HIGH)",
+      "TypeError silently converted to empty set (HIGH)",
+      "Silent agent failures (MEDIUM)",
+      "Partial fingerprints not indicated (MEDIUM)"
+    ],
+    "non_blocking_issues": [
+      "Non-deterministic timestamps in traces (documented limitation)",
+      "Environment variable leakage (documented limitation)",
+      "Misleading tool name (documented limitation)"
+    ],
+    "closure_status": "CLOSED",
+    "closure_conditions_met": true
+  }
+}
