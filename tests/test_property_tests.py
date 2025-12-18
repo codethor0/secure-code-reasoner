@@ -4,8 +4,9 @@ These tests verify properties hold for all cases, not just specific examples.
 Uses Hypothesis for property-based testing.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from secure_code_reasoner.fingerprinting import Fingerprinter
 
