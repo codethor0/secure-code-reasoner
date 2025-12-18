@@ -22,6 +22,7 @@ class AgentCoordinator:
     def review(self, fingerprint: Any) -> AgentReport:
         """Run all agents independently and merge their reports."""
         agent_reports: list[AgentReport] = []
+        failed_agents: list[str] = []  # Mitigation C: Track failures explicitly
 
         for agent in self.agents:
             try:
@@ -30,6 +31,7 @@ class AgentCoordinator:
                     logger.warning(
                         f"Agent {agent.name} returned invalid report type: {type(report)}"
                     )
+                    failed_agents.append(agent.name)
                     continue
                 agent_reports.append(report)
                 logger.debug(
@@ -37,31 +39,47 @@ class AgentCoordinator:
                 )
             except Exception as e:
                 logger.error(f"Agent {agent.name} failed: {e}", exc_info=True)
+                failed_agents.append(agent.name)
                 continue
 
+        # Mitigation C: Explicit failure tracking - distinguish "no findings" from "agent failure"
         if not agent_reports:
             return AgentReport(
                 agent_name="Coordinator",
                 findings=frozenset(),
                 patch_suggestions=frozenset(),
                 summary="No agents completed successfully.",
-                metadata={"agents_run": 0, "agents_failed": len(self.agents)},
+                metadata={
+                    "agents_run": 0,
+                    "agents_total": len(self.agents),
+                    "agents_failed": len(self.agents),
+                    "failed_agent_names": failed_agents,
+                    "execution_status": "FAILED",  # Explicit status
+                },
             )
 
         merged_findings = self._merge_findings(agent_reports)
         merged_patches = self._merge_patches(agent_reports)
         summary = self._generate_summary(agent_reports)
+        
+        # Mitigation C: Include failure information even when some agents succeed
+        execution_status = "PARTIAL" if failed_agents else "COMPLETE"
+        metadata = {
+            "agents_run": len(agent_reports),
+            "agents_total": len(self.agents),
+            "agent_names": [r.agent_name for r in agent_reports],
+            "execution_status": execution_status,
+        }
+        if failed_agents:
+            metadata["agents_failed"] = len(failed_agents)
+            metadata["failed_agent_names"] = failed_agents
 
         return AgentReport(
             agent_name="Coordinator",
             findings=merged_findings,
             patch_suggestions=merged_patches,
             summary=summary,
-            metadata={
-                "agents_run": len(agent_reports),
-                "agents_total": len(self.agents),
-                "agent_names": [r.agent_name for r in agent_reports],
-            },
+            metadata=metadata,
         )
 
     def _merge_findings(self, reports: list[AgentReport]) -> frozenset:

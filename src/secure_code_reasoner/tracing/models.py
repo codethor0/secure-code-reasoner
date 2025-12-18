@@ -22,10 +22,15 @@ class TraceEventType(str, Enum):
 
 @dataclass(frozen=True)
 class TraceEvent:
-    """Represents a single trace event captured during code execution."""
+    """Represents a single trace event captured during code execution.
+    
+    Note: timestamp is non-deterministic metadata (uses time.time()) and breaks
+    byte-for-byte reproducibility. Core event data (type, file_path, etc.) is
+    deterministic, but timestamps vary between runs.
+    """
 
     event_type: TraceEventType
-    timestamp: float
+    timestamp: float  # Non-deterministic metadata - varies between runs
     file_path: Path | None = None
     process_id: int | None = None
     network_address: str | None = None
@@ -128,12 +133,17 @@ class RiskScore:
 
 @dataclass(frozen=True)
 class ExecutionTrace:
-    """Complete execution trace with risk assessment."""
+    """Complete execution trace with risk assessment.
+    
+    Note: execution_time and event timestamps are non-deterministic metadata
+    that vary between runs. Core trace structure (events, exit_code, risk_score)
+    is deterministic for the same script and configuration.
+    """
 
     script_path: Path
     events: frozenset[TraceEvent] = field(default_factory=frozenset)
     exit_code: int | None = None
-    execution_time: float = 0.0
+    execution_time: float = 0.0  # Non-deterministic metadata - varies between runs
     risk_score: RiskScore | None = None
     stdout: str = ""
     stderr: str = ""
@@ -147,14 +157,27 @@ class ExecutionTrace:
             object.__setattr__(self, "events", frozenset(self.events))
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert execution trace to dictionary for serialization."""
+        """Convert execution trace to dictionary for serialization.
+        
+        Note: Output includes non-deterministic timestamps. For reproducible
+        comparisons, filter out timestamp fields or use deterministic event ordering.
+        """
         return {
             "script_path": str(self.script_path),
             "events": [event.to_dict() for event in sorted(self.events, key=lambda e: e.timestamp)],
             "exit_code": self.exit_code,
-            "execution_time": self.execution_time,
+            "execution_time": self.execution_time,  # Non-deterministic
             "risk_score": self.risk_score.to_dict() if self.risk_score else None,
             "stdout": self.stdout,
             "stderr": self.stderr,
             "metadata": self.metadata,
+            "_non_deterministic_fields": ["execution_time", "events[].timestamp"],  # Mitigation E: Explicit documentation
+            # Level-4: Proof-carrying output - structural requirement
+            "proof_obligations": {
+                "requires_non_deterministic_filtering": True,
+                "invalid_comparison_if_not_filtered": True,
+                "risk_score_is_heuristic_not_security_rating": True,
+                "execution_time_is_not_performance_metric": True,
+                "contract_violation_if_fields_ignored": True,
+            },
         }

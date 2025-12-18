@@ -188,6 +188,7 @@ class AgentReport:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert agent report to dictionary for serialization."""
+        execution_status = self.metadata.get("execution_status", "COMPLETE")
         return {
             "agent_name": self.agent_name,
             "findings": [
@@ -204,4 +205,13 @@ class AgentReport:
             ],
             "summary": self.summary,
             "metadata": self.metadata,
+            # Level-4: Proof-carrying output - structural requirement
+            "proof_obligations": {
+                "requires_execution_status_check": True,
+                "invalid_if_ignored": True,
+                "findings_invalid_if_failed": execution_status == "FAILED",
+                "findings_invalid_if_partial": execution_status == "PARTIAL",
+                "empty_findings_means_failure_not_success": execution_status != "COMPLETE",
+                "contract_violation_if_status_ignored": True,
+            },
         }

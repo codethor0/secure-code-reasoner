@@ -32,11 +32,21 @@ class JSONFormatter(Formatter):
 
     def format_fingerprint(self, fingerprint: RepositoryFingerprint) -> str:
         """Format fingerprint as JSON."""
-        return json.dumps(fingerprint.to_dict(), indent=2, default=str)
+        result = fingerprint.to_dict()
+        # Mitigation D: Ensure status is visible in JSON output
+        if "fingerprint_status" not in result:
+            result["fingerprint_status"] = getattr(fingerprint, "status", "COMPLETE")
+        return json.dumps(result, indent=2, default=str)
 
     def format_agent_report(self, report: AgentReport) -> str:
         """Format agent report as JSON."""
-        return json.dumps(report.to_dict(), indent=2, default=str)
+        result = report.to_dict()
+        # Mitigation C: Ensure execution_status is visible in JSON output
+        if "execution_status" not in result.get("metadata", {}):
+            metadata = result.get("metadata", {})
+            metadata["execution_status"] = metadata.get("execution_status", "COMPLETE")
+            result["metadata"] = metadata
+        return json.dumps(result, indent=2, default=str)
 
     def format_trace(self, trace: ExecutionTrace) -> str:
         """Format execution trace as JSON."""

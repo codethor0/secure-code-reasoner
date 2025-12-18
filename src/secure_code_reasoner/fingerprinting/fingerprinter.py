@@ -256,6 +256,27 @@ class Fingerprinter:
             raise FingerprintingError(f"Repository path does not exist: {self.repository_path}")
         if not self.repository_path.is_dir():
             raise FingerprintingError(f"Repository path is not a directory: {self.repository_path}")
+    
+    def _validate_path_within_root(self, path: Path) -> Path:
+        """Validate that resolved path remains within repository root."""
+        resolved = path.resolve()
+        try:
+            if not resolved.is_relative_to(self.repository_path):
+                raise FingerprintingError(
+                    f"Resolved path escapes repository root: {resolved} (root: {self.repository_path})"
+                )
+        except AttributeError:
+            # Python < 3.9 compatibility: use string comparison
+            try:
+                resolved_str = str(resolved)
+                root_str = str(self.repository_path)
+                if not resolved_str.startswith(root_str):
+                    raise FingerprintingError(
+                        f"Resolved path escapes repository root: {resolved} (root: {self.repository_path})"
+                    )
+            except Exception as e:
+                raise FingerprintingError(f"Path validation failed: {e}") from e
+        return resolved
 
     def fingerprint(self) -> RepositoryFingerprint:
         """Generate fingerprint for the repository."""
@@ -263,6 +284,7 @@ class Fingerprinter:
         artifacts: list[CodeArtifact] = []
         languages: dict[str, int] = {}
         total_lines = 0
+        failed_files: list[str] = []
 
         for file_path in self._walk_repository():
             try:
@@ -276,6 +298,7 @@ class Fingerprinter:
                         total_lines += artifact.line_count
             except Exception as e:
                 logger.warning(f"Failed to process file {file_path}: {e}")
+                failed_files.append(str(file_path))
 
         dependency_graph = self._build_dependency_graph(artifacts)
 
@@ -284,8 +307,6 @@ class Fingerprinter:
             for signal in artifact.risk_signals:
                 risk_signals[signal] = risk_signals.get(signal, 0) + 1
 
-        fingerprint_hash = self._compute_fingerprint_hash(artifacts, dependency_graph)
-
         total_files = sum(1 for a in artifacts if isinstance(a, FileArtifact))
         total_classes = sum(1 for a in artifacts if isinstance(a, ClassArtifact))
         total_functions = sum(1 for a in artifacts if isinstance(a, FunctionArtifact))
@@ -293,10 +314,24 @@ class Fingerprinter:
         artifacts_tuple = tuple(
             sorted(artifacts, key=lambda a: (a.path.as_posix(), a.start_line, a.name))
         )
+        
+        # Mitigation B: Never return valid fingerprint on TypeError
         try:
             artifacts_set = frozenset(artifacts_tuple)
-        except TypeError:
-            artifacts_set = frozenset()
+        except TypeError as e:
+            raise FingerprintingError(
+                f"TypeError during fingerprint generation (non-hashable artifacts): {e}. "
+                "Fingerprint cannot be generated. This indicates a bug in artifact construction."
+            ) from e
+
+        fingerprint_hash = self._compute_fingerprint_hash(artifacts, dependency_graph)
+        
+        # Determine fingerprint status
+        fingerprint_status = "PARTIAL" if failed_files else "COMPLETE"
+        status_metadata = {}
+        if failed_files:
+            status_metadata["failed_files"] = failed_files
+            status_metadata["failed_file_count"] = len(failed_files)
 
         return RepositoryFingerprint(
             repository_path=self.repository_path,
@@ -309,6 +344,8 @@ class Fingerprinter:
             artifacts=artifacts_set,
             dependency_graph=dependency_graph,
             risk_signals=risk_signals,
+            status=fingerprint_status,
+            status_metadata=status_metadata,
         )
 
     def _walk_repository(self) -> list[Path]:
@@ -316,14 +353,21 @@ class Fingerprinter:
         files: list[Path] = []
 
         for path in sorted(self.repository_path.rglob("*")):
-            if path.is_dir():
-                if path.name in self.IGNORE_DIRS:
+            # Validate path remains within repository root (prevents symlink traversal)
+            try:
+                validated_path = self._validate_path_within_root(path)
+            except FingerprintingError:
+                logger.warning(f"Skipping path outside repository root: {path}")
+                continue
+            
+            if validated_path.is_dir():
+                if validated_path.name in self.IGNORE_DIRS:
                     continue
-            elif path.is_file():
-                if path.name in self.IGNORE_FILES:
+            elif validated_path.is_file():
+                if validated_path.name in self.IGNORE_FILES:
                     continue
-                if path.suffix in self.SUPPORTED_EXTENSIONS:
-                    files.append(path)
+                if validated_path.suffix in self.SUPPORTED_EXTENSIONS:
+                    files.append(validated_path)
 
         return sorted(files)
 

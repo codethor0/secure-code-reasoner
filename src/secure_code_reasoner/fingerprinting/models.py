@@ -260,6 +260,8 @@ class RepositoryFingerprint:
     artifacts: frozenset[CodeArtifact]
     dependency_graph: DependencyGraph
     risk_signals: dict[RiskSignal, int]
+    status: str = "COMPLETE"  # COMPLETE, PARTIAL, INVALID
+    status_metadata: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -274,17 +276,24 @@ class RepositoryFingerprint:
             raise ValueError("total_functions must be >= 0")
         if self.total_lines < 0:
             raise ValueError("total_lines must be >= 0")
+        if self.status not in ("COMPLETE", "PARTIAL", "INVALID"):
+            raise ValueError(f"status must be COMPLETE, PARTIAL, or INVALID, got {self.status}")
         if not isinstance(self.artifacts, frozenset):
             try:
                 object.__setattr__(self, "artifacts", frozenset(self.artifacts))
-            except TypeError:
-                object.__setattr__(self, "artifacts", frozenset())
+            except TypeError as e:
+                # Mitigation B: Never silently convert TypeError to empty set
+                raise ValueError(
+                    f"TypeError converting artifacts to frozenset: {e}. "
+                    "This indicates non-hashable artifacts. Fingerprint is INVALID."
+                ) from e
 
     def to_dict(self) -> dict[str, Any]:
         """Convert fingerprint to dictionary for serialization."""
-        return {
+        result = {
             "repository_path": str(self.repository_path),
             "fingerprint_hash": self.fingerprint_hash,
+            "fingerprint_status": self.status,  # Mitigation D: Explicit status in output
             "total_files": self.total_files,
             "total_classes": self.total_classes,
             "total_functions": self.total_functions,
@@ -300,4 +309,16 @@ class RepositoryFingerprint:
                 for signal, count in sorted(self.risk_signals.items(), key=lambda x: x[0].value)
             },
             "metadata": self.metadata,
+            # Level-4: Proof-carrying output - structural requirement
+            "proof_obligations": {
+                "requires_status_check": True,
+                "invalid_if_ignored": True,
+                "deterministic_only_if_complete": self.status == "COMPLETE",
+                "hash_invalid_if_partial": self.status != "COMPLETE",
+                "contract_violation_if_status_ignored": True,
+            },
         }
+        # Mitigation D: Include status metadata if fingerprint is partial
+        if self.status == "PARTIAL" and self.status_metadata:
+            result["status_metadata"] = self.status_metadata
+        return result

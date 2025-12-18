@@ -49,6 +49,8 @@ class ExecutionTracer:
             raise TracingError(f"Script path does not exist: {script_path}")
         if not script_path.is_file():
             raise TracingError(f"Script path is not a file: {script_path}")
+        # Note: Path traversal protection for script_path would require a root context
+        # For now, we rely on the caller to provide a trusted script path
 
         logger.info(f"Tracing execution of: {script_path}")
 
