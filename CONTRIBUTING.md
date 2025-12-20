@@ -153,22 +153,91 @@ test: Add tests for execution tracer
 refactor: Simplify agent coordinator logic
 ```
 
+## CI Requirements (Mandatory)
+
+**CI must pass before any merge to main.** This is enforced by branch protection.
+
+### Required CI Checks
+
+All of the following must pass:
+
+- **Lint**: Formatting (Black), type checking (mypy), linting (ruff)
+- **Test (3.11)**: Full test suite on Python 3.11
+- **Test (3.12)**: Full test suite on Python 3.12
+- **Type Check**: Static type analysis
+- **Verify Contract**: Contract enforcement verification (`scripts/verify.sh`)
+
+### CI Failure Handling
+
+**Never disable checks, skip tests, or weaken contracts to make CI pass.**
+
+If CI fails:
+
+1. **Fetch CI logs** using GitHub Actions UI or `gh run view <run-id> --log`
+2. **Classify the failure**:
+   - Formatting drift → Run `black src tests` and commit
+   - Lint violations → Fix code, don't disable rules
+   - Test failures → Fix tests or code, don't skip
+   - Contract failures → Fix root cause, don't weaken contracts
+3. **Fix root cause only** - One issue per commit
+4. **Re-run CI** - Push fixes and verify all checks pass
+
+See [CI_FAILURE_PLAYBOOK.md](CI_FAILURE_PLAYBOOK.md) for detailed triage procedures.
+
+### Formatting Enforcement
+
+**Formatting is enforced by CI.** Run before pushing:
+
+```bash
+black src tests
+```
+
+CI will fail if formatting doesn't match Black's output. This is intentional and prevents style drift.
+
+### Verify Contract Failures
+
+**Verify Contract failures are release-blocking.** The `scripts/verify.sh` script enforces:
+
+- Installation works
+- CLI commands respond
+- Functional analysis executes
+- Tests pass with correct count
+- Forbidden files are absent
+- CI contexts are valid
+
+If Verify Contract fails, the root cause must be fixed before merge.
+
 ## Pull Request Process
 
 1. Ensure all tests pass: `pytest`
 2. Run code quality checks: `black`, `mypy`, `ruff`
-3. Update documentation as needed
-4. Create a pull request with a clear description
-5. Reference any related issues in the PR description
+3. Run verification: `scripts/verify.sh`
+4. Update documentation as needed
+5. Create a pull request with a clear description
+6. Reference any related issues in the PR description
+7. **Wait for all CI checks to pass** before requesting review
 
 ### PR Checklist
 
 - [ ] Code follows the project's style guidelines
-- [ ] All tests pass
-- [ ] Type checking passes (`mypy`)
-- [ ] Linting passes (`ruff`)
+- [ ] All tests pass locally (`pytest`)
+- [ ] Type checking passes (`mypy src`)
+- [ ] Linting passes (`ruff check src tests`)
+- [ ] Formatting applied (`black src tests`)
+- [ ] Verification passes (`scripts/verify.sh`)
 - [ ] Documentation updated
 - [ ] Commit messages are clear and descriptive
+- [ ] **All CI checks pass** (Lint, Test 3.11, Test 3.12, Type Check, Verify Contract)
+
+### Core CLI Determinism
+
+**The core CLI is deterministic and reproducible.** Experimental work that breaks determinism must live elsewhere:
+
+- **Web GUI**: Use separate repo (`secure-code-reasoner-web`)
+- **Multi-LLM integration**: Use separate repo or experimental branch
+- **Non-deterministic features**: Must be opt-in and clearly documented
+
+The core CLI must remain usable offline, reproducible, and contract-enforced.
 
 ## Project Structure
 
