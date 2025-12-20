@@ -58,12 +58,29 @@ This project implements runtime contracts to enforce correctness invariants. For
 
 ## Overview
 
-Secure Code Reasoner is designed for researchers and developers who need to understand code structure, identify security patterns, and analyze code behavior through controlled execution. This toolkit provides:
+Secure Code Reasoner is a CLI-based security analysis engine designed for researchers and developers who need to understand code structure, identify security patterns, and analyze code behavior through controlled execution. This toolkit provides:
 
 - **Repository Fingerprinting**: Semantic analysis of code structure, dependency mapping, and risk signal detection
 - **Multi-Agent Review Framework**: Coordinated analysis through specialized agents for code quality, security, and patch suggestions
 - **Controlled Execution Tracing**: Code execution with Python-level restrictions (not OS-level sandboxing) and comprehensive trace capture and risk scoring
 - **Structured Reporting**: JSON and human-readable text output formats
+
+### Current Scope
+
+**What Secure Code Reasoner IS (v0.1.0):**
+- CLI-based command-line tool
+- Deterministic, rule-based analysis engine
+- Standalone security analysis toolkit
+- Research-oriented code analysis platform
+
+**What Secure Code Reasoner IS NOT (v0.1.0):**
+- Web GUI application
+- Multi-LLM orchestration system
+- Authentication/session management system
+- Multi-tenant sandboxing platform
+- LLM provider integration framework
+
+See [ROADMAP.md](ROADMAP.md) for planned future capabilities.
 
 ## Architecture
 
