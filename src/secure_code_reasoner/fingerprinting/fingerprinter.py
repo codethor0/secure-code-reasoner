@@ -428,7 +428,9 @@ class Fingerprinter:
                     had_syntax_error = True
             except UnicodeDecodeError:
                 logger.warning(f"Cannot decode file {file_path} as UTF-8")
-                had_syntax_error = True
+                # UnicodeDecodeError is not a syntax error, it's a decode error
+                # It will be caught by outer handler and tracked in failed_files
+                had_syntax_error = False
 
         return artifacts, had_syntax_error
 

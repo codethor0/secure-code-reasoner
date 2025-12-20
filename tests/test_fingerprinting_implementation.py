@@ -238,7 +238,9 @@ class TestFileProcessing:
         assert fingerprint.status == "PARTIAL", "Syntax errors must set PARTIAL status"
         failed_files = fingerprint.status_metadata.get("failed_files", [])
         # Failed files use full paths (as_posix()), check if filename is in any path
-        assert any("bad.py" in path for path in failed_files), "Failed file must be tracked in status_metadata"
+        assert any(
+            "bad.py" in path for path in failed_files
+        ), "Failed file must be tracked in status_metadata"
         assert fingerprint.status_metadata.get("failed_file_count", 0) == 1
 
     def test_process_file_unicode_error(self, tmp_path: Path) -> None:

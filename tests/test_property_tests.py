@@ -88,7 +88,13 @@ class TestSchemaInvariantProperties:
         fingerprint = fp.fingerprint()
 
         # Valid statuses: COMPLETE, COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, INVALID
-        valid_statuses = ("COMPLETE", "COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS", "PARTIAL", "INVALID")
+        valid_statuses = (
+            "COMPLETE",
+            "COMPLETE_NO_SKIPS",
+            "COMPLETE_WITH_SKIPS",
+            "PARTIAL",
+            "INVALID",
+        )
         assert fingerprint.status in valid_statuses
         assert fingerprint.to_dict()["fingerprint_status"] in valid_statuses
 
@@ -104,7 +110,13 @@ class TestSchemaInvariantProperties:
 
         assert "fingerprint_status" in output
         # Valid statuses: COMPLETE, COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, INVALID
-        valid_statuses = ("COMPLETE", "COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS", "PARTIAL", "INVALID")
+        valid_statuses = (
+            "COMPLETE",
+            "COMPLETE_NO_SKIPS",
+            "COMPLETE_WITH_SKIPS",
+            "PARTIAL",
+            "INVALID",
+        )
         assert output["fingerprint_status"] in valid_statuses
 
     def test_proof_obligations_present(self, tmp_path: Path) -> None:
