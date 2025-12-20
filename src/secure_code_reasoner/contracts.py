@@ -9,18 +9,18 @@ from secure_code_reasoner.fingerprinting.models import RepositoryFingerprint
 
 def enforce_proof_obligations_contract(proof_obligations: dict[str, Any], context: str) -> None:
     """Enforce proof obligation value and type contract.
-    
+
     Contract: All proof_obligations values must be bool.
     Structural obligations must be True; computed obligations can be False when semantically correct.
-    
+
     Structural obligations (must be True):
     - Fingerprint: requires_status_check, invalid_if_ignored, contract_violation_if_status_ignored
     - Agent report: requires_execution_status_check, invalid_if_ignored, contract_violation_if_status_ignored
-    
+
     Computed obligations (can be False when semantically correct):
     - Fingerprint: deterministic_only_if_complete, hash_invalid_if_partial
     - Agent report: findings_invalid_if_failed, findings_invalid_if_partial, empty_findings_means_failure_not_success
-    
+
     Raises:
         ContractViolationError: If any value is not bool, or if structural obligation is not True
     """
@@ -31,7 +31,7 @@ def enforce_proof_obligations_contract(proof_obligations: dict[str, Any], contex
         "contract_violation_if_status_ignored",
         "requires_execution_status_check",
     }
-    
+
     for key, value in proof_obligations.items():
         if not isinstance(value, bool):
             raise ContractViolationError(
@@ -49,9 +49,9 @@ def enforce_proof_obligations_contract(proof_obligations: dict[str, Any], contex
 
 def enforce_status_contract(fingerprint_status: str, execution_status: str) -> None:
     """Enforce status contract for success predicate.
-    
+
     Contract: Exit code 0 implies status in {COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS}
-    
+
     Raises:
         ContractViolationError: If status violates success predicate
     """
@@ -68,11 +68,13 @@ def enforce_status_contract(fingerprint_status: str, execution_status: str) -> N
         )
 
 
-def enforce_schema_contract(data: dict[str, Any], expected_schema_version: int, known_fields: set[str], context: str) -> None:
+def enforce_schema_contract(
+    data: dict[str, Any], expected_schema_version: int, known_fields: set[str], context: str
+) -> None:
     """Enforce schema contract (version and unknown fields).
-    
+
     Contract: schema_version must match expected, no unknown fields allowed.
-    
+
     Raises:
         ContractViolationError: If schema_version mismatch or unknown fields present
     """
@@ -94,9 +96,9 @@ def enforce_schema_contract(data: dict[str, Any], expected_schema_version: int, 
 
 def enforce_completeness_contract(fingerprint: RepositoryFingerprint) -> None:
     """Enforce completeness semantics contract.
-    
+
     Contract: COMPLETE_NO_SKIPS implies no skipped files.
-    
+
     Raises:
         ContractViolationError: If COMPLETE_NO_SKIPS but skipped files exist
     """
@@ -113,7 +115,7 @@ def enforce_success_predicate(
     exit_code: int,
 ) -> None:
     """Enforce authoritative success predicate contract.
-    
+
     Contract: Success (exit_code == 0) implies:
     - fingerprint_status in {COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS}
     - execution_status == "COMPLETE"
@@ -122,9 +124,9 @@ def enforce_success_predicate(
     - All proof_obligations values are bool
     - Structural proof_obligations are True
     - Computed proof_obligations can be False when semantically correct
-    
+
     This is the meta-invariant: success predicate must be satisfied before exit(0).
-    
+
     Raises:
         ContractViolationError: If success predicate is violated (missing proof_obligations, wrong type, invalid values, or status mismatch)
     """
@@ -133,7 +135,7 @@ def enforce_success_predicate(
         fingerprint_status = fingerprint.status
         execution_status = agent_report.metadata.get("execution_status", "COMPLETE")
         enforce_status_contract(fingerprint_status, execution_status)
-        
+
         # Enforce proof obligation contracts
         fingerprint_dict = fingerprint.to_dict()
         if "proof_obligations" not in fingerprint_dict:
@@ -145,11 +147,8 @@ def enforce_success_predicate(
                 f"CONTRACT VIOLATION: fingerprint proof_obligations must be dict, "
                 f"got {type(fingerprint_dict['proof_obligations']).__name__}"
             )
-        enforce_proof_obligations_contract(
-            fingerprint_dict["proof_obligations"],
-            "fingerprint"
-        )
-        
+        enforce_proof_obligations_contract(fingerprint_dict["proof_obligations"], "fingerprint")
+
         agent_dict = agent_report.to_dict()
         if "proof_obligations" not in agent_dict:
             raise ContractViolationError(
@@ -160,22 +159,20 @@ def enforce_success_predicate(
                 f"CONTRACT VIOLATION: agent_report proof_obligations must be dict, "
                 f"got {type(agent_dict['proof_obligations']).__name__}"
             )
-        enforce_proof_obligations_contract(
-            agent_dict["proof_obligations"],
-            "agent_report"
-        )
+        enforce_proof_obligations_contract(agent_dict["proof_obligations"], "agent_report")
 
 
 def enforce_output_contract(output: str, format_type: str) -> None:
     """Enforce output format contract.
-    
+
     Contract: JSON output must be valid JSON if format=json.
-    
+
     Raises:
         ContractViolationError: If JSON output is invalid
     """
     if format_type.lower() == "json":
         import json
+
         try:
             # Try to parse as JSON (may be NDJSON, so parse line by line)
             for line in output.strip().split("\n"):

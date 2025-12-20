@@ -92,7 +92,9 @@ class TestVerifyScriptAgentReportChecks:
         # POST-PATCH assertion: must fail
         assert exit_code == 1, "verify.sh should fail on malformed JSON"
         assert "ERROR" in error_message, "Should produce ERROR message, not WARN"
-        assert "JSON" in error_message or "parse" in error_message.lower(), "Should mention JSON parsing error"
+        assert (
+            "JSON" in error_message or "parse" in error_message.lower()
+        ), "Should mention JSON parsing error"
 
     def test_verify_sh_passes_on_valid_agent_report(self, tmp_path: Path) -> None:
         """Test that verify.sh passes on valid agent report JSON."""

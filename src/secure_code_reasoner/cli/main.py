@@ -77,7 +77,7 @@ def analyze(path: Path, output: Path | None, format: str) -> None:
         if not output:
             click.echo("\n")
             click.echo(agent_report_text)
-        
+
         # Runtime contract: Enforce success predicate before exit(0)
         enforce_success_predicate(fingerprint, agent_report, exit_code=0)
 
@@ -168,7 +168,7 @@ def report(path: Path, output: Path, format: str) -> None:
         full_report = "\n".join(combined_report)
         reporter._write_report(output, full_report)
         click.echo(f"Report written to: {output}")
-        
+
         # Runtime contract: Enforce success predicate before exit(0)
         enforce_success_predicate(fingerprint, agent_report, exit_code=0)
 

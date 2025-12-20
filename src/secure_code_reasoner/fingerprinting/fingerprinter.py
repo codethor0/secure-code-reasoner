@@ -261,22 +261,10 @@ class Fingerprinter:
     def _validate_path_within_root(self, path: Path) -> Path:
         """Validate that resolved path remains within repository root."""
         resolved = path.resolve()
-        try:
-            if not resolved.is_relative_to(self.repository_path):
-                raise FingerprintingError(
-                    f"Resolved path escapes repository root: {resolved} (root: {self.repository_path})"
-                )
-        except AttributeError:
-            # Python < 3.9 compatibility: use string comparison
-            try:
-                resolved_str = str(resolved)
-                root_str = str(self.repository_path)
-                if not resolved_str.startswith(root_str):
-                    raise FingerprintingError(
-                        f"Resolved path escapes repository root: {resolved} (root: {self.repository_path})"
-                    )
-            except Exception as e:
-                raise FingerprintingError(f"Path validation failed: {e}") from e
+        if not resolved.is_relative_to(self.repository_path):
+            raise FingerprintingError(
+                f"Resolved path escapes repository root: {resolved} (root: {self.repository_path})"
+            )
         return resolved
 
     def fingerprint(self) -> RepositoryFingerprint:

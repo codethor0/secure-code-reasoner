@@ -11,9 +11,7 @@ from secure_code_reasoner.fingerprinting import Fingerprinter
 class TestFingerprintingErrorPropagation:
     """Test that FingerprintingError propagates correctly after BUG-005 fix."""
 
-    def test_fingerprinting_error_propagates_not_caught_as_file_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fingerprinting_error_propagates_not_caught_as_file_error(self, tmp_path: Path) -> None:
         """Regression test: FingerprintingError must propagate, not be caught as file I/O error.
 
         This test verifies the BUG-005 fix where FingerprintingError was incorrectly

@@ -156,7 +156,9 @@ class TestSchemaContract:
         data = {"other_field": "value"}
         known_fields = {"schema_version", "other_field"}
         with pytest.raises(ContractViolationError) as exc_info:
-            enforce_schema_contract(data, expected_schema_version=1, known_fields=known_fields, context="test")
+            enforce_schema_contract(
+                data, expected_schema_version=1, known_fields=known_fields, context="test"
+            )
         assert "schema_version must be present" in str(exc_info.value)
         assert "test" in str(exc_info.value)
 
@@ -165,7 +167,9 @@ class TestSchemaContract:
         data = {"schema_version": 2}
         known_fields = {"schema_version"}
         with pytest.raises(ContractViolationError) as exc_info:
-            enforce_schema_contract(data, expected_schema_version=1, known_fields=known_fields, context="test")
+            enforce_schema_contract(
+                data, expected_schema_version=1, known_fields=known_fields, context="test"
+            )
         assert "schema_version must be 1" in str(exc_info.value)
         assert "got 2" in str(exc_info.value)
 
@@ -174,7 +178,9 @@ class TestSchemaContract:
         data = {"schema_version": 1, "known_field": "value", "unknown_field": "value"}
         known_fields = {"schema_version", "known_field"}
         with pytest.raises(ContractViolationError) as exc_info:
-            enforce_schema_contract(data, expected_schema_version=1, known_fields=known_fields, context="test")
+            enforce_schema_contract(
+                data, expected_schema_version=1, known_fields=known_fields, context="test"
+            )
         assert "Unknown fields not allowed" in str(exc_info.value)
         assert "unknown_field" in str(exc_info.value)
 
@@ -183,13 +189,17 @@ class TestSchemaContract:
         data = {"schema_version": 1, "known_field": "value"}
         known_fields = {"schema_version", "known_field"}
         # Should not raise
-        enforce_schema_contract(data, expected_schema_version=1, known_fields=known_fields, context="test")
+        enforce_schema_contract(
+            data, expected_schema_version=1, known_fields=known_fields, context="test"
+        )
 
 
 class TestCompletenessContract:
     """Tests for completeness contract enforcement."""
 
-    def test_complete_no_skips_satisfies_contract(self, sample_fingerprint: RepositoryFingerprint) -> None:
+    def test_complete_no_skips_satisfies_contract(
+        self, sample_fingerprint: RepositoryFingerprint
+    ) -> None:
         """COMPLETE_NO_SKIPS status satisfies contract."""
         # Modify fingerprint to have COMPLETE_NO_SKIPS status
         fingerprint = RepositoryFingerprint(

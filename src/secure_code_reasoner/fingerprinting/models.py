@@ -79,7 +79,7 @@ class CodeArtifact:
 
     def _make_metadata_hashable(self, metadata: dict[str, Any]) -> tuple:
         """Convert metadata dict to hashable tuple.
-        
+
         Recursively converts nested structures to hashable tuples in a deterministic way.
         Lists are converted to tuples (preserves order), dicts are converted to sorted key-value tuples.
         """
@@ -89,10 +89,10 @@ class CodeArtifact:
         for key, value in sorted(metadata.items()):
             items.append((key, self._make_value_hashable(value)))
         return tuple(items)
-    
+
     def _make_value_hashable(self, value: Any) -> Any:
         """Recursively convert a value to a hashable type.
-        
+
         Handles nested dicts, lists, and sets deterministically:
         - Dicts: sorted by key for order-independent hashing
         - Lists: converted to tuple (preserves order for determinism)
@@ -298,7 +298,9 @@ class RepositoryFingerprint:
         if self.total_lines < 0:
             raise ValueError("total_lines must be >= 0")
         if self.status not in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS", "PARTIAL", "FAILED"):
-            raise ValueError(f"status must be COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, or FAILED, got {self.status}")
+            raise ValueError(
+                f"status must be COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, or FAILED, got {self.status}"
+            )
         if not isinstance(self.artifacts, frozenset):
             try:
                 object.__setattr__(self, "artifacts", frozenset(self.artifacts))
@@ -336,8 +338,10 @@ class RepositoryFingerprint:
         proof_obligations = {
             "requires_status_check": True,
             "invalid_if_ignored": True,
-            "deterministic_only_if_complete": self.status in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS"),
-            "hash_invalid_if_partial": self.status not in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS"),
+            "deterministic_only_if_complete": self.status
+            in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS"),
+            "hash_invalid_if_partial": self.status
+            not in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS"),
             "contract_violation_if_status_ignored": True,
         }
         # Note: Contract enforcement happens at verification time (verify.sh), not serialization time

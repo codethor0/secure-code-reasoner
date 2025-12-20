@@ -33,7 +33,7 @@ class SandboxError(SecureCodeReasonerError):
 
 class ContractViolationError(SecureCodeReasonerError):
     """Raised when a runtime contract is violated.
-    
+
     This exception distinguishes contract violations from programmer assertions
     and allows tooling to treat contract failures specially.
     """

@@ -52,7 +52,7 @@ class TraceEvent:
 
     def _make_metadata_hashable(self, metadata: dict[str, Any]) -> tuple:
         """Convert metadata dict to hashable tuple.
-        
+
         Recursively converts nested structures to hashable tuples in a deterministic way.
         Lists are converted to tuples (preserves order), dicts are converted to sorted key-value tuples.
         """
@@ -62,10 +62,10 @@ class TraceEvent:
         for key, value in sorted(metadata.items()):
             items.append((key, self._make_value_hashable(value)))
         return tuple(items)
-    
+
     def _make_value_hashable(self, value: Any) -> Any:
         """Recursively convert a value to a hashable type.
-        
+
         Handles nested dicts, lists, and sets deterministically:
         - Dicts: sorted by key for order-independent hashing
         - Lists: converted to tuple (preserves order for determinism)
