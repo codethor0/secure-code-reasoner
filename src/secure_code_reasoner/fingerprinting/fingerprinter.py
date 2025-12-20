@@ -292,7 +292,7 @@ class Fingerprinter:
                 file_artifacts, had_syntax_error = self._process_file(file_path)
                 artifacts.extend(file_artifacts)
                 if had_syntax_error:
-                    failed_files.append(str(file_path))
+                    failed_files.append(file_path.as_posix())
 
                 for artifact in file_artifacts:
                     if isinstance(artifact, FileArtifact):
@@ -301,7 +301,7 @@ class Fingerprinter:
                         total_lines += artifact.line_count
             except (OSError, PermissionError, UnicodeDecodeError) as e:
                 logger.warning(f"Failed to process file {file_path}: {e}")
-                failed_files.append(str(file_path))
+                failed_files.append(file_path.as_posix())
             except FingerprintingError:
                 raise  # Propagate fingerprinting errors
 
