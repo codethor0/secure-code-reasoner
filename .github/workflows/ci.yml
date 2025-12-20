@@ -30,6 +30,11 @@ jobs:
       - name: Run tests
         run: pytest tests/ -v --cov=secure_code_reasoner --cov-report=xml
 
+      - name: Run contract tests (non-optional)
+        run: pytest tests/test_contracts.py -v --tb=short
+        # Contract tests must never be skipped - they prove contracts are active
+        # If this step fails, contracts have been weakened or removed
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:

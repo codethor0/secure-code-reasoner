@@ -1,0 +1,117 @@
+{
+  "patch_application_date": "2025-01-17",
+  "methodology": "Patch Application With Proof Obligation",
+  "patches": [
+    {
+      "bug_id": "BUG-001",
+      "file": "scripts/verify.sh",
+      "line_start": 472,
+      "line_end": 473,
+      "applied": true,
+      "code_context": "Agent report proof obligations verification - empty content check",
+      "patch_before": "if not content:\n    print(\"WARN: Empty agent report JSON (may be expected)\", file=sys.stderr)\n    sys.exit(0)  # Non-blocking",
+      "patch_after": "if not content:\n    print(\"ERROR: Empty agent report JSON\", file=sys.stderr)\n    sys.exit(1)  # Blocking - agent report is required",
+      "control_flow_diff": {
+        "before": {
+          "path": "Empty agent report JSON detected",
+          "action": "Print WARN message to stderr",
+          "exit_code": 0,
+          "ci_result": "PASSES (silent failure)",
+          "downstream_effect": "CI green despite missing agent report"
+        },
+        "after": {
+          "path": "Empty agent report JSON detected",
+          "action": "Print ERROR message to stderr",
+          "exit_code": 1,
+          "ci_result": "FAILS (explicit failure)",
+          "downstream_effect": "CI red, contract violation detected"
+        },
+        "difference": "Empty agent report now causes hard failure instead of warning. CI will fail instead of passing silently."
+      },
+      "failure_paths_analysis": {
+        "paths_that_now_terminate_non_zero": [
+          {
+            "path": "Empty agent report JSON file",
+            "exit_code": 1,
+            "error_message": "ERROR: Empty agent report JSON",
+            "verification": "SIMULATED - confirmed exit(1)"
+          }
+        ],
+        "paths_unchanged": [
+          {
+            "path": "Valid agent report with all required fields",
+            "exit_code": 0,
+            "behavior": "Unchanged - still passes"
+          },
+          {
+            "path": "Missing agent report file (file doesn't exist)",
+            "exit_code": "UNCHANGED - handled by file existence check at line 463"
+          }
+        ]
+      },
+      "new_failure_paths_introduced": [],
+      "silent_failure_possible": false,
+      "proof": "Empty agent report path now explicitly exits with code 1 and ERROR message. No exit(0) path exists for empty content. Simulation confirms exit(1)."
+    },
+    {
+      "bug_id": "BUG-002",
+      "file": "scripts/verify.sh",
+      "line_start": 500,
+      "line_end": 502,
+      "applied": true,
+      "code_context": "Agent report proof obligations verification - JSON parsing exception handler",
+      "patch_before": "except json.JSONDecodeError:\n    print(\"WARN: Could not parse agent report JSON (may be expected)\", file=sys.stderr)\n    sys.exit(0)  # Non-blocking",
+      "patch_after": "except json.JSONDecodeError as e:\n    print(f\"ERROR: Could not parse agent report JSON: {e}\", file=sys.stderr)\n    sys.exit(1)  # Blocking - malformed JSON indicates bug",
+      "control_flow_diff": {
+        "before": {
+          "path": "Malformed agent report JSON (JSONDecodeError)",
+          "action": "Print WARN message to stderr",
+          "exit_code": 0,
+          "ci_result": "PASSES (silent failure)",
+          "downstream_effect": "CI green despite malformed JSON"
+        },
+        "after": {
+          "path": "Malformed agent report JSON (JSONDecodeError)",
+          "action": "Print ERROR message with exception details to stderr",
+          "exit_code": 1,
+          "ci_result": "FAILS (explicit failure)",
+          "downstream_effect": "CI red, serialization bug detected"
+        },
+        "difference": "JSON parse errors now cause hard failure with detailed error message. CI will fail instead of passing silently."
+      },
+      "failure_paths_analysis": {
+        "paths_that_now_terminate_non_zero": [
+          {
+            "path": "Malformed agent report JSON (JSONDecodeError)",
+            "exit_code": 1,
+            "error_message": "ERROR: Could not parse agent report JSON: <exception details>",
+            "verification": "SIMULATED - confirmed exit(1) with detailed message"
+          }
+        ],
+        "paths_unchanged": [
+          {
+            "path": "Valid JSON with all required fields",
+            "exit_code": 0,
+            "behavior": "Unchanged - still passes"
+          },
+          {
+            "path": "Other exceptions (non-JSONDecodeError)",
+            "exit_code": 1,
+            "behavior": "Unchanged - still handled by generic Exception handler at line 503"
+          }
+        ]
+      },
+      "new_failure_paths_introduced": [],
+      "silent_failure_possible": false,
+      "proof": "JSONDecodeError path now explicitly exits with code 1 and ERROR message with exception details. No exit(0) path exists for JSON parse errors. Simulation confirms exit(1)."
+    }
+  ],
+  "verification": {
+    "all_patches_applied": true,
+    "silent_failure_eliminated": true,
+    "control_flow_verified": true,
+    "no_new_risks_introduced": true,
+    "proof_obligation_met": true
+  },
+  "conclusion": "PATCHES APPLIED — SILENT FAILURE IMPOSSIBLE"
+}

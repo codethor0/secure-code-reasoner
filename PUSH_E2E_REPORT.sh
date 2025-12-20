@@ -1,4 +1,9 @@
 #!/bin/bash
+# HISTORICAL ARTIFACT: This script was used during end-to-end verification (2024-12)
+# It is no longer maintained or referenced in the codebase.
+# Kept for audit trail purposes only.
+# DO NOT USE - This script is obsolete.
+#
 set -e
 
 cd /Users/thor/Projects/secure-code-reasoner

@@ -374,6 +374,26 @@ try:
         
         fingerprint = json.loads(content)
         
+        # Epistemic closure: Schema version validation
+        if "schema_version" not in fingerprint:
+            print("ERROR: fingerprint missing schema_version", file=sys.stderr)
+            sys.exit(1)
+        if fingerprint["schema_version"] != 1:
+            print(f"ERROR: fingerprint schema_version must be 1, got {fingerprint['schema_version']}", file=sys.stderr)
+            sys.exit(1)
+        
+        # Epistemic closure: Fail closed on unknown top-level fields
+        known_fields = {
+            "schema_version", "repository_path", "fingerprint_hash", "fingerprint_status",
+            "total_files", "total_classes", "total_functions", "total_lines",
+            "languages", "artifacts", "dependency_graph", "risk_signals",
+            "metadata", "proof_obligations", "status_metadata"
+        }
+        unknown_fields = set(fingerprint.keys()) - known_fields
+        if unknown_fields:
+            print(f"ERROR: fingerprint contains unknown fields: {sorted(unknown_fields)}", file=sys.stderr)
+            sys.exit(1)
+        
         # Level-4: Verify proof_obligations present
         if "proof_obligations" not in fingerprint:
             print("ERROR: fingerprint missing proof_obligations", file=sys.stderr)
@@ -384,6 +404,12 @@ try:
             print("ERROR: fingerprint missing fingerprint_status", file=sys.stderr)
             sys.exit(1)
         
+        # Epistemic closure: Verify fingerprint_status is valid enum
+        valid_statuses = {"COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS", "PARTIAL", "FAILED"}
+        if fingerprint["fingerprint_status"] not in valid_statuses:
+            print(f"ERROR: fingerprint_status must be one of {valid_statuses}, got {fingerprint['fingerprint_status']}", file=sys.stderr)
+            sys.exit(1)
+        
         # Level-4: Verify proof obligations structure
         po = fingerprint["proof_obligations"]
         required_keys = ["requires_status_check", "invalid_if_ignored", "contract_violation_if_status_ignored"]
@@ -391,6 +417,27 @@ try:
             if key not in po:
                 print(f"ERROR: proof_obligations missing required key: {key}", file=sys.stderr)
                 sys.exit(1)
+        
+        # Epistemic closure: Verify proof obligation values are bool
+        # Structural obligations must be True; computed obligations can be False when semantically correct
+        structural_obligations = {"requires_status_check", "invalid_if_ignored", "contract_violation_if_status_ignored"}
+        computed_obligations = {"deterministic_only_if_complete", "hash_invalid_if_partial"}
+        for key, value in po.items():
+            if not isinstance(value, bool):
+                print(f"ERROR: proof_obligations[{key}] must be bool, got {type(value).__name__}", file=sys.stderr)
+                sys.exit(1)
+            # Structural obligations must always be True
+            if key in structural_obligations and value is not True:
+                print(f"ERROR: proof_obligations[{key}] must be True (structural obligation), got {value}", file=sys.stderr)
+                sys.exit(1)
+            # Computed obligations can be False when semantically correct (validated as bool only)
+        
+        # Epistemic closure: Fail closed on unknown proof_obligations fields
+        known_po_keys = set(required_keys) | {"deterministic_only_if_complete", "hash_invalid_if_partial"}
+        unknown_po_keys = set(po.keys()) - known_po_keys
+        if unknown_po_keys:
+            print(f"ERROR: proof_obligations contains unknown keys: {sorted(unknown_po_keys)}", file=sys.stderr)
+            sys.exit(1)
         
         print("Fingerprint proof obligations verified")
 except json.JSONDecodeError as e:
@@ -469,10 +516,28 @@ try:
     with open("$AGENT_REPORT_JSON", 'r') as f:
         content = f.read().strip()
         if not content:
-            print("WARN: Empty agent report JSON (may be expected)", file=sys.stderr)
-            sys.exit(0)  # Non-blocking
+            print("ERROR: Empty agent report JSON", file=sys.stderr)
+            sys.exit(1)  # Blocking - agent report is required
         
         agent_report = json.loads(content)
+        
+        # Epistemic closure: Schema version validation
+        if "schema_version" not in agent_report:
+            print("ERROR: agent_report missing schema_version", file=sys.stderr)
+            sys.exit(1)
+        if agent_report["schema_version"] != 1:
+            print(f"ERROR: agent_report schema_version must be 1, got {agent_report['schema_version']}", file=sys.stderr)
+            sys.exit(1)
+        
+        # Epistemic closure: Fail closed on unknown top-level fields
+        known_fields = {
+            "schema_version", "agent_name", "findings", "patch_suggestions",
+            "summary", "metadata", "proof_obligations"
+        }
+        unknown_fields = set(agent_report.keys()) - known_fields
+        if unknown_fields:
+            print(f"ERROR: agent_report contains unknown fields: {sorted(unknown_fields)}", file=sys.stderr)
+            sys.exit(1)
         
         # Level-4: Verify proof_obligations present
         if "proof_obligations" not in agent_report:
@@ -488,6 +553,12 @@ try:
             print("ERROR: agent_report metadata missing execution_status", file=sys.stderr)
             sys.exit(1)
         
+        # Epistemic closure: Verify execution_status is valid enum
+        valid_statuses = {"COMPLETE", "PARTIAL", "FAILED"}
+        if agent_report["metadata"]["execution_status"] not in valid_statuses:
+            print(f"ERROR: execution_status must be one of {valid_statuses}, got {agent_report['metadata']['execution_status']}", file=sys.stderr)
+            sys.exit(1)
+        
         # Level-4: Verify proof obligations structure
         po = agent_report["proof_obligations"]
         required_keys = ["requires_execution_status_check", "invalid_if_ignored", "contract_violation_if_status_ignored"]
@@ -496,10 +567,31 @@ try:
                 print(f"ERROR: proof_obligations missing required key: {key}", file=sys.stderr)
                 sys.exit(1)
         
+        # Epistemic closure: Verify proof obligation values are bool
+        # Structural obligations must be True; computed obligations can be False when semantically correct
+        structural_obligations = {"requires_execution_status_check", "invalid_if_ignored", "contract_violation_if_status_ignored"}
+        computed_obligations = {"findings_invalid_if_failed", "findings_invalid_if_partial", "empty_findings_means_failure_not_success"}
+        for key, value in po.items():
+            if not isinstance(value, bool):
+                print(f"ERROR: proof_obligations[{key}] must be bool, got {type(value).__name__}", file=sys.stderr)
+                sys.exit(1)
+            # Structural obligations must always be True
+            if key in structural_obligations and value is not True:
+                print(f"ERROR: proof_obligations[{key}] must be True (structural obligation), got {value}", file=sys.stderr)
+                sys.exit(1)
+            # Computed obligations can be False when semantically correct (validated as bool only)
+        
+        # Epistemic closure: Fail closed on unknown proof_obligations fields
+        known_po_keys = set(required_keys) | {"findings_invalid_if_failed", "findings_invalid_if_partial", "empty_findings_means_failure_not_success"}
+        unknown_po_keys = set(po.keys()) - known_po_keys
+        if unknown_po_keys:
+            print(f"ERROR: proof_obligations contains unknown keys: {sorted(unknown_po_keys)}", file=sys.stderr)
+            sys.exit(1)
+        
         print("Agent report proof obligations verified")
-except json.JSONDecodeError:
-    print("WARN: Could not parse agent report JSON (may be expected)", file=sys.stderr)
-    sys.exit(0)  # Non-blocking
+except json.JSONDecodeError as e:
+    print(f"ERROR: Could not parse agent report JSON: {e}", file=sys.stderr)
+    sys.exit(1)  # Blocking - malformed JSON indicates bug
 except Exception as e:
     print(f"ERROR: Proof check failed: {e}", file=sys.stderr)
     sys.exit(1)

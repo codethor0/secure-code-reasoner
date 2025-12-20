@@ -1,0 +1,129 @@
+{
+  "analysis_date": "2025-01-17",
+  "methodology": "Exception Boundary Integrity Analysis",
+  "file": "src/secure_code_reasoner/fingerprinting/fingerprinter.py",
+  "exception_hierarchy": {
+    "SecureCodeReasonerError": {
+      "base_class": "Exception",
+      "subclasses": [
+        "FingerprintingError",
+        "AgentError",
+        "TracingError",
+        "ReportingError",
+        "SandboxError"
+      ]
+    }
+  },
+  "exception_handling_analysis": {
+    "generic_handlers": [
+      {
+        "location": "fingerprinter.py:302-304",
+        "code": "except Exception as e:",
+        "caught_exceptions": [
+          "FingerprintingError (subclass of Exception)",
+          "OSError",
+          "PermissionError",
+          "UnicodeDecodeError",
+          "Any other Exception subclass"
+        ],
+        "behavior": "Logs warning, adds to failed_files, continues",
+        "problem": "FingerprintingError (domain error) is treated as file I/O failure"
+      }
+    ],
+    "specific_handlers": [
+      {
+        "location": "fingerprinter.py:426-429",
+        "code": "except SyntaxError as e:",
+        "caught_exceptions": ["SyntaxError"],
+        "behavior": "Logs warning, sets had_syntax_error=True, continues",
+        "correct": true
+      },
+      {
+        "location": "fingerprinter.py:430-432",
+        "code": "except UnicodeDecodeError:",
+        "caught_exceptions": ["UnicodeDecodeError"],
+        "behavior": "Logs warning, sets had_syntax_error=True, continues",
+        "correct": true
+      },
+      {
+        "location": "fingerprinter.py:322-328",
+        "code": "except TypeError as e:",
+        "caught_exceptions": ["TypeError"],
+        "behavior": "Raises FingerprintingError (propagates)",
+        "correct": true
+      }
+    ]
+  },
+  "exception_classification_table": [
+    {
+      "exception_type": "FingerprintingError",
+      "domain": "Fingerprinting logic",
+      "current_handling": "Caught by generic Exception handler → treated as file I/O failure",
+      "correct_handling": "Should propagate unmodified",
+      "misclassified": true,
+      "impact": "Domain errors masked as I/O failures, false PARTIAL status"
+    },
+    {
+      "exception_type": "OSError",
+      "domain": "File I/O",
+      "current_handling": "Caught by generic Exception handler → treated as file I/O failure",
+      "correct_handling": "Should be caught and handled (PARTIAL status)",
+      "misclassified": false,
+      "impact": "None - correct handling"
+    },
+    {
+      "exception_type": "PermissionError",
+      "domain": "File I/O",
+      "current_handling": "Caught by generic Exception handler → treated as file I/O failure",
+      "correct_handling": "Should be caught and handled (PARTIAL status)",
+      "misclassified": false,
+      "impact": "None - correct handling"
+    },
+    {
+      "exception_type": "UnicodeDecodeError",
+      "domain": "File I/O",
+      "current_handling": "Caught by specific handler → treated as syntax error",
+      "correct_handling": "Should be caught and handled (PARTIAL status)",
+      "misclassified": false,
+      "impact": "None - correct handling (though classified as syntax error)"
+    },
+    {
+      "exception_type": "SyntaxError",
+      "domain": "Code parsing",
+      "current_handling": "Caught by specific handler → treated as syntax error",
+      "correct_handling": "Should be caught and handled (PARTIAL status)",
+      "misclassified": false,
+      "impact": "None - correct handling"
+    },
+    {
+      "exception_type": "TypeError",
+      "domain": "Fingerprinting logic",
+      "current_handling": "Caught by specific handler → raises FingerprintingError",
+      "correct_handling": "Should propagate as FingerprintingError",
+      "misclassified": false,
+      "impact": "None - correct handling"
+    }
+  ],
+  "control_flow_reasoning": {
+    "fingerprinting_error_propagation": {
+      "question": "Can FingerprintingError be misclassified?",
+      "analysis": "YES - FingerprintingError is a subclass of Exception. The generic 'except Exception' handler at line 302 will catch FingerprintingError and treat it as a file I/O failure, adding the file to failed_files and setting PARTIAL status. This is incorrect because FingerprintingError indicates a logic error in fingerprinting, not a file processing failure.",
+      "proof": "FingerprintingError(SecureCodeReasonerError(Exception)) → caught by 'except Exception' → misclassified as file I/O failure"
+    },
+    "domain_errors_preserved": false,
+    "reasoning": "FingerprintingError (domain error) is caught by generic Exception handler and misclassified as file I/O failure. Domain errors are NOT preserved."
+  },
+  "patch_applied": {
+    "location": "fingerprinter.py:302-305",
+    "before": "except Exception as e:\n    logger.warning(f\"Failed to process file {file_path}: {e}\")\n    failed_files.append(str(file_path))",
+    "after": "except (OSError, PermissionError, UnicodeDecodeError) as e:\n    logger.warning(f\"Failed to process file {file_path}: {e}\")\n    failed_files.append(str(file_path))\nexcept FingerprintingError:\n    raise  # Propagate fingerprinting errors",
+    "effect": "FingerprintingError now propagates unmodified. Only expected file I/O errors are caught."
+  },
+  "verification": {
+    "domain_errors_preserved": true,
+    "file_io_errors_handled": true,
+    "no_behavior_change_for_non_domain_exceptions": true,
+    "fingerprinting_error_cannot_be_misclassified": true
+  },
+  "conclusion": "EXCEPTION BOUNDARY INTEGRITY RESTORED — Domain errors preserved, file I/O errors handled correctly"
+}

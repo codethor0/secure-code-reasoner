@@ -23,7 +23,7 @@ To change these invariants:
 
 ### Section 1: Fingerprint Status Enum
 
-**Invariant**: `fingerprint_status` MUST be exactly one of: `COMPLETE`, `PARTIAL`, `INVALID`
+**Invariant**: `fingerprint_status` MUST be exactly one of: `COMPLETE_NO_SKIPS`, `COMPLETE_WITH_SKIPS`, `PARTIAL`, `FAILED`
 
 **Rationale**: Adding or removing status values erodes meaning. Changing `PARTIAL` to `WARN` makes incompleteness look like a warning.
 
@@ -51,12 +51,12 @@ To change these invariants:
 
 ### Section 1: Fingerprint Status Default
 
-**Invariant**: Default `fingerprint_status` MUST be `COMPLETE`
+**Invariant**: Default `fingerprint_status` MUST be `COMPLETE_WITH_SKIPS`
 
 **Rationale**: Default implies success. Changing to `PARTIAL` makes success look like failure.
 
 **Enforcement**:
-- Code: `RepositoryFingerprint.status = "COMPLETE"` (default)
+- Code: `RepositoryFingerprint.status = "COMPLETE_WITH_SKIPS"` (default)
 - Test: `test_fingerprinting_models.py::test_default_status_complete`
 - CI: Must pass or break build
 
@@ -107,7 +107,7 @@ To change these invariants:
 
 ### Section 1: Fingerprint Hash Determinism
 
-**Invariant**: Same repository MUST produce same `fingerprint_hash` if `status=COMPLETE`
+**Invariant**: Same repository MUST produce same `fingerprint_hash` if `status` is `COMPLETE_NO_SKIPS` or `COMPLETE_WITH_SKIPS`
 
 **Rationale**: Hash is used for comparison. Non-deterministic hash breaks comparison.
 

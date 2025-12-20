@@ -86,6 +86,27 @@ ruff check src tests
 
 ## Contribution Guidelines
 
+### Contract Correctness Policy
+
+**Contract weakening requires explicit justification and test updates.**
+
+Runtime contracts enforce correctness invariants at execution time. These contracts are provably active via contract tests (`tests/test_contracts.py`).
+
+**Rules**:
+1. **Contract tests must never be skipped** - They prove contracts are active, not just present
+2. **Contract weakening requires explicit justification** - If you need to weaken a contract, document why in the PR
+3. **Contract changes require test updates** - Any contract modification must update corresponding contract tests
+4. **Contract violations must remain non-silent** - All violations raise `ContractViolationError` with descriptive messages
+
+**What this means**:
+- Removing or weakening contracts requires explicit justification
+- Contract test failures are release-blocking
+- Contract enforcement is non-negotiable without documented rationale
+- See [RUNTIME_CONTRACTS.md](docs/RUNTIME_CONTRACTS.md) for contract details
+- See [LIMITS_OF_CORRECTNESS.md](docs/LIMITS_OF_CORRECTNESS.md) for declared limits
+
+**Contract test location**: `tests/test_contracts.py` (non-optional in CI)
+
 ### Code Style
 
 - Follow PEP 8 style guidelines

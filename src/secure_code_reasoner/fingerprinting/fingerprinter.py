@@ -299,9 +299,11 @@ class Fingerprinter:
                         lang = artifact.language or "unknown"
                         languages[lang] = languages.get(lang, 0) + 1
                         total_lines += artifact.line_count
-            except Exception as e:
+            except (OSError, PermissionError, UnicodeDecodeError) as e:
                 logger.warning(f"Failed to process file {file_path}: {e}")
                 failed_files.append(str(file_path))
+            except FingerprintingError:
+                raise  # Propagate fingerprinting errors
 
         dependency_graph = self._build_dependency_graph(artifacts)
 
@@ -329,12 +331,22 @@ class Fingerprinter:
 
         fingerprint_hash = self._compute_fingerprint_hash(artifacts, dependency_graph)
 
-        # Determine fingerprint status
-        fingerprint_status = "PARTIAL" if failed_files else "COMPLETE"
-        status_metadata: dict[str, Any] = {}
+        # Epistemic closure: Explicit status semantics
+        # COMPLETE_NO_SKIPS: All processable files processed successfully, no intentional skips
+        # COMPLETE_WITH_SKIPS: All processable files processed successfully, but some files intentionally skipped
+        # PARTIAL: Some processable files failed to process
+        # FAILED: Fingerprinting failed entirely
         if failed_files:
-            status_metadata["failed_files"] = failed_files
-            status_metadata["failed_file_count"] = len(failed_files)
+            fingerprint_status = "PARTIAL"
+            status_metadata = {
+                "failed_files": failed_files,
+                "failed_file_count": len(failed_files),
+            }
+        else:
+            # Note: Intentional skips (IGNORE_DIRS, IGNORE_FILES, non-.py) are always present
+            # This is COMPLETE_WITH_SKIPS by design (skips are intentional, not failures)
+            fingerprint_status = "COMPLETE_WITH_SKIPS"
+            status_metadata = {}
 
         return RepositoryFingerprint(
             repository_path=self.repository_path,

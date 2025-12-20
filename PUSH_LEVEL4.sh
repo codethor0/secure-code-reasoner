@@ -1,4 +1,9 @@
 #!/bin/bash
+# HISTORICAL ARTIFACT: This script was used during Level-4 implementation (2024-12)
+# It is no longer maintained or referenced in the codebase.
+# Kept for audit trail purposes only.
+# DO NOT USE - This script is obsolete.
+#
 # Push Level-4 implementation to origin/main
 # This script must be run manually due to authentication requirements
 

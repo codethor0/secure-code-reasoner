@@ -163,6 +163,7 @@ class ExecutionTrace:
         comparisons, filter out timestamp fields or use deterministic event ordering.
         """
         return {
+            "schema_version": 1,  # Epistemic closure: Schema versioning for drift resistance
             "script_path": str(self.script_path),
             "events": [event.to_dict() for event in sorted(self.events, key=lambda e: e.timestamp)],
             "exit_code": self.exit_code,
@@ -174,8 +175,8 @@ class ExecutionTrace:
             "_non_deterministic_fields": [
                 "execution_time",
                 "events[].timestamp",
-            ],  # Mitigation E: Explicit documentation
-            # Level-4: Proof-carrying output - structural requirement
+            ],  # Epistemic closure: Explicit documentation
+            # Epistemic closure: Proof-carrying output with value validation
             "proof_obligations": {
                 "requires_non_deterministic_filtering": True,
                 "invalid_comparison_if_not_filtered": True,

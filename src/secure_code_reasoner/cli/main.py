@@ -12,6 +12,7 @@ from secure_code_reasoner.agents import (
     PatchAdvisorAgent,
     SecurityReviewerAgent,
 )
+from secure_code_reasoner.contracts import enforce_success_predicate
 from secure_code_reasoner.fingerprinting import Fingerprinter
 from secure_code_reasoner.reporting import JSONFormatter, Reporter, TextFormatter
 from secure_code_reasoner.tracing import ExecutionTracer
@@ -76,6 +77,9 @@ def analyze(path: Path, output: Path | None, format: str) -> None:
         if not output:
             click.echo("\n")
             click.echo(agent_report_text)
+        
+        # Runtime contract: Enforce success predicate before exit(0)
+        enforce_success_predicate(fingerprint, agent_report, exit_code=0)
 
     except Exception as e:
         logger.error(f"Analysis failed: {e}", exc_info=True)
@@ -164,6 +168,9 @@ def report(path: Path, output: Path, format: str) -> None:
         full_report = "\n".join(combined_report)
         reporter._write_report(output, full_report)
         click.echo(f"Report written to: {output}")
+        
+        # Runtime contract: Enforce success predicate before exit(0)
+        enforce_success_predicate(fingerprint, agent_report, exit_code=0)
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}", exc_info=True)

@@ -43,6 +43,19 @@ See [VERIFY.md](VERIFY.md) for complete PyPI publishing prerequisites and failur
 
 The PyPI badge reflects "not published" status. Badges may lag real state by several minutes due to caching. Publication will occur automatically when a signed tag triggers the workflow and all verification gates pass.
 
+## Correctness Guarantees
+
+This project implements runtime contracts to enforce correctness invariants. For complete details on what is mechanically enforced, what is assumed, and what remains unprovable, see:
+
+- **[LIMITS_OF_CORRECTNESS.md](docs/LIMITS_OF_CORRECTNESS.md)** - Explicit declaration of correctness boundaries
+- **[RUNTIME_CONTRACTS.md](docs/RUNTIME_CONTRACTS.md)** - Contract enforcement details and test coverage
+
+**Key properties**:
+- Invalid state cannot be serialized (enforced at serialization boundaries)
+- Invalid meaning cannot escape as "success" (enforced at exit boundaries)
+- Contract violations are non-silent and observable
+- Contract tests prove enforcement is active, not just present
+
 ## Overview
 
 Secure Code Reasoner is designed for researchers and developers who need to understand code structure, identify security patterns, and analyze code behavior through controlled execution. This toolkit provides:

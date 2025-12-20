@@ -260,7 +260,7 @@ class RepositoryFingerprint:
     artifacts: frozenset[CodeArtifact]
     dependency_graph: DependencyGraph
     risk_signals: dict[RiskSignal, int]
-    status: str = "COMPLETE"  # COMPLETE, PARTIAL, INVALID
+    status: str = "COMPLETE_WITH_SKIPS"  # COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, FAILED
     status_metadata: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -276,8 +276,8 @@ class RepositoryFingerprint:
             raise ValueError("total_functions must be >= 0")
         if self.total_lines < 0:
             raise ValueError("total_lines must be >= 0")
-        if self.status not in ("COMPLETE", "PARTIAL", "INVALID"):
-            raise ValueError(f"status must be COMPLETE, PARTIAL, or INVALID, got {self.status}")
+        if self.status not in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS", "PARTIAL", "FAILED"):
+            raise ValueError(f"status must be COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, or FAILED, got {self.status}")
         if not isinstance(self.artifacts, frozenset):
             try:
                 object.__setattr__(self, "artifacts", frozenset(self.artifacts))
@@ -291,9 +291,10 @@ class RepositoryFingerprint:
     def to_dict(self) -> dict[str, Any]:
         """Convert fingerprint to dictionary for serialization."""
         result = {
+            "schema_version": 1,  # Epistemic closure: Schema versioning for drift resistance
             "repository_path": str(self.repository_path),
             "fingerprint_hash": self.fingerprint_hash,
-            "fingerprint_status": self.status,  # Mitigation D: Explicit status in output
+            "fingerprint_status": self.status,  # Epistemic closure: Explicit status semantics
             "total_files": self.total_files,
             "total_classes": self.total_classes,
             "total_functions": self.total_functions,
@@ -309,16 +310,23 @@ class RepositoryFingerprint:
                 for signal, count in sorted(self.risk_signals.items(), key=lambda x: x[0].value)
             },
             "metadata": self.metadata,
-            # Level-4: Proof-carrying output - structural requirement
-            "proof_obligations": {
-                "requires_status_check": True,
-                "invalid_if_ignored": True,
-                "deterministic_only_if_complete": self.status == "COMPLETE",
-                "hash_invalid_if_partial": self.status != "COMPLETE",
-                "contract_violation_if_status_ignored": True,
-            },
         }
-        # Mitigation D: Include status metadata if fingerprint is partial
-        if self.status == "PARTIAL" and self.status_metadata:
+        # Epistemic closure: Proof-carrying output with value validation
+        proof_obligations = {
+            "requires_status_check": True,
+            "invalid_if_ignored": True,
+            "deterministic_only_if_complete": self.status in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS"),
+            "hash_invalid_if_partial": self.status not in ("COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS"),
+            "contract_violation_if_status_ignored": True,
+        }
+        # Note: Contract enforcement happens at verification time (verify.sh), not serialization time
+        # This allows computed proof obligations to be False when semantically correct
+        result["proof_obligations"] = proof_obligations
+        # Epistemic closure: Include status metadata if fingerprint is partial or has skips
+        if self.status in ("PARTIAL", "COMPLETE_WITH_SKIPS") and self.status_metadata:
             result["status_metadata"] = self.status_metadata
+        # Runtime contract: Enforce schema contract (version and unknown fields)
+        # Note: Schema contract enforcement happens at verification time (verify.sh)
+        # This allows serialization to proceed even if schema validation would fail
+        # verify.sh will catch schema violations before accepting the output
         return result

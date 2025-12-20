@@ -50,6 +50,24 @@ We use CVSS v3.0 to assess vulnerability severity:
 
 ## Security Considerations
 
+### Correctness Guarantees and Limits
+
+This project implements runtime contracts to enforce correctness invariants. For a complete understanding of what is mechanically enforced, what is assumed, and what remains unprovable, see [LIMITS_OF_CORRECTNESS.md](docs/LIMITS_OF_CORRECTNESS.md).
+
+**Key guarantees**:
+- Invalid state cannot be serialized (enforced at serialization boundaries)
+- Invalid meaning cannot escape as "success" (enforced at exit boundaries)
+- Contract violations are non-silent and observable
+- Contract tests prove enforcement is active, not just present
+
+**Declared limits**:
+- Platform-dependent behavior (filesystem, shell, Python runtime)
+- Temporal properties (signals, resource exhaustion)
+- Observer-dependent interpretation
+- Schema evolution beyond declared versions
+
+These limits are explicitly documented and non-negotiable. See [RUNTIME_CONTRACTS.md](docs/RUNTIME_CONTRACTS.md) for contract enforcement details.
+
 ### Sandbox Limitations
 
 The execution tracing subsystem uses subprocess isolation, which provides limited security guarantees:

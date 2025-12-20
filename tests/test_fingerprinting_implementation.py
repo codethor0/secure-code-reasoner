@@ -214,6 +214,29 @@ class TestFileProcessing:
         assert len(artifacts) == 1
         assert isinstance(artifacts[0], FileArtifact)
 
+    def test_syntax_error_sets_partial_status(self, tmp_path: Path) -> None:
+        """Regression test: Syntax errors must set PARTIAL status.
+
+        This test prevents regression of the Level-8 fix where syntax errors
+        were caught but not tracked in failed_files, resulting in incorrect
+        COMPLETE status.
+        """
+        repo = tmp_path / "syntax_error_repo"
+        repo.mkdir()
+        # Create file with syntax error
+        (repo / "bad.py").write_text("def hello(:  # Syntax error\n")
+        # Create valid file to ensure repo is processable
+        (repo / "good.py").write_text("def hello(): pass\n")
+
+        fingerprinter = Fingerprinter(repo)
+        fingerprint = fingerprinter.fingerprint()
+
+        assert fingerprint.status == "PARTIAL", "Syntax errors must set PARTIAL status"
+        assert "bad.py" in fingerprint.status_metadata.get("failed_files", []), (
+            "Failed file must be tracked in status_metadata"
+        )
+        assert fingerprint.status_metadata.get("failed_file_count", 0) == 1
+
     def test_process_file_unicode_error(self, tmp_path: Path) -> None:
         """Test that unicode errors don't crash processing."""
         repo = tmp_path / "repo"
