@@ -1,11 +1,7 @@
 """Tests for verify.sh contract enforcement logic."""
 
 import json
-import subprocess
-import sys
 from pathlib import Path
-
-import pytest
 
 
 class TestVerifyScriptAgentReportChecks:
@@ -30,7 +26,7 @@ class TestVerifyScriptAgentReportChecks:
         error_message = ""
 
         try:
-            with open(agent_report_file, "r") as f:
+            with open(agent_report_file) as f:
                 content = f.read().strip()
 
             if not content:
@@ -65,7 +61,7 @@ class TestVerifyScriptAgentReportChecks:
         error_message = ""
 
         try:
-            with open(agent_report_file, "r") as f:
+            with open(agent_report_file) as f:
                 content = f.read().strip()
 
             if not content:
@@ -122,7 +118,7 @@ class TestVerifyScriptAgentReportChecks:
         error_message = ""
 
         try:
-            with open(agent_report_file, "r") as f:
+            with open(agent_report_file) as f:
                 content = f.read().strip()
 
             if not content:
