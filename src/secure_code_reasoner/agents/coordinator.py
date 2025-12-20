@@ -53,7 +53,7 @@ class AgentCoordinator:
                     "agents_run": 0,
                     "agents_total": len(self.agents),
                     "agents_failed": len(self.agents),
-                    "failed_agent_names": failed_agents,
+                    "failed_agent_names": sorted(failed_agents),
                     "execution_status": "FAILED",  # Explicit status
                 },
             )
@@ -67,12 +67,12 @@ class AgentCoordinator:
         metadata = {
             "agents_run": len(agent_reports),
             "agents_total": len(self.agents),
-            "agent_names": [r.agent_name for r in agent_reports],
+            "agent_names": sorted([r.agent_name for r in agent_reports]),
             "execution_status": execution_status,
         }
         if failed_agents:
             metadata["agents_failed"] = len(failed_agents)
-            metadata["failed_agent_names"] = failed_agents
+            metadata["failed_agent_names"] = sorted(failed_agents)
 
         return AgentReport(
             agent_name="Coordinator",

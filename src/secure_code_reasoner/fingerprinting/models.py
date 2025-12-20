@@ -78,17 +78,35 @@ class CodeArtifact:
         object.__setattr__(self, "_metadata_hash", metadata_hash)
 
     def _make_metadata_hashable(self, metadata: dict[str, Any]) -> tuple:
-        """Convert metadata dict to hashable tuple."""
+        """Convert metadata dict to hashable tuple.
+        
+        Recursively converts nested structures to hashable tuples in a deterministic way.
+        Lists are converted to tuples (preserves order), dicts are converted to sorted key-value tuples.
+        """
         if not metadata:
             return ()
         items = []
         for key, value in sorted(metadata.items()):
-            try:
-                hash(value)
-                items.append((key, value))
-            except TypeError:
-                items.append((key, str(value)))
+            items.append((key, self._make_value_hashable(value)))
         return tuple(items)
+    
+    def _make_value_hashable(self, value: Any) -> Any:
+        """Recursively convert a value to a hashable type.
+        
+        Handles nested dicts and lists deterministically:
+        - Dicts: sorted by key for order-independent hashing
+        - Lists: converted to tuple (preserves order for determinism)
+        """
+        try:
+            hash(value)
+            return value
+        except TypeError:
+            if isinstance(value, dict):
+                return tuple(sorted((k, self._make_value_hashable(v)) for k, v in value.items()))
+            elif isinstance(value, list):
+                return tuple(self._make_value_hashable(item) for item in value)
+            else:
+                return str(value)
 
     def __hash__(self) -> int:
         """Make artifact hashable by using hashable metadata representation."""
