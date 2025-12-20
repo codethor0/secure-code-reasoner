@@ -161,3 +161,42 @@ jobs:
           chmod +x scripts/verify.sh
           scripts/verify.sh
 
+  determinism-artifact:
+    name: Determinism Artifact
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+
+      - name: Run determinism test
+        run: |
+          mkdir -p artifacts
+          scr analyze examples/demo-repo --format json > artifacts/determinism-output.json
+
+      - name: Compute SHA256 hash
+        run: |
+          sha256sum artifacts/determinism-output.json > artifacts/determinism-hash.txt
+          echo "Determinism hash:" && cat artifacts/determinism-hash.txt
+
+      - name: Upload determinism artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: determinism-artifact
+          path: artifacts/determinism-output.json
+          retention-days: 90
+
+      - name: Print hash to logs
+        run: |
+          echo "=== DETERMINISM HASH ===" && cat artifacts/determinism-hash.txt && echo "=== END HASH ==="
+
