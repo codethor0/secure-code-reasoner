@@ -64,6 +64,8 @@ Secure Code Reasoner is a CLI-based security analysis engine designed for resear
 - **Multi-Agent Review Framework**: Coordinated analysis through specialized agents for code quality, security, and patch suggestions
 - **Controlled Execution Tracing**: Code execution with Python-level restrictions (not OS-level sandboxing) and comprehensive trace capture and risk scoring
 - **Structured Reporting**: JSON and human-readable text output formats
+  - JSON output is deterministic and written to stdout
+  - Log messages are written to stderr
 
 ### Current Scope
 
@@ -130,8 +132,21 @@ docker pull ghcr.io/codethor0/secure-code-reasoner:latest
 Example usage:
 
 ```bash
-docker run --rm -v "$(pwd):/work" ghcr.io/codethor0/secure-code-reasoner scr analyze /work
+docker run --rm -v "$(pwd):/work" ghcr.io/codethor0/secure-code-reasoner analyze /work
 ```
+
+**Docker Runtime Behavior:**
+- Container runs as non-root user (`scr`, uid=100)
+- JSON output is written to stdout (deterministic)
+- Log messages are written to stderr
+- Read-only filesystem compatible (use `--read-only` flag)
+- No network access by default (use `--network none` for isolation)
+
+**Output Stream Separation:**
+- JSON format (`--format json`): Structured output to stdout, logs to stderr
+- Text format (`--format text`): Human-readable output to stdout, logs to stderr
+- To capture JSON only: `docker run ... analyze ... --format json > output.json 2>/dev/null`
+- To capture logs only: `docker run ... analyze ... --format json >/dev/null 2> logs.log`
 
 The container runs with restricted defaults and is intended for local analysis workflows.
 

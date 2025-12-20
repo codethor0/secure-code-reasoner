@@ -64,11 +64,26 @@ These differences are expected and acceptable:
 - **Test Runtime**: May vary based on system load
 - **Output Ordering**: JSON keys may appear in different order (still valid JSON)
 
+## Docker Verification (Optional but Recommended)
+
+If Docker is available, the following Docker-specific verifications should pass:
+
+1. **Non-Root User**: `docker run --rm --entrypoint id <image>` must show `uid != 0`
+2. **Stream Separation**: JSON output must be clean (no log timestamps in stdout)
+   - Command: `docker run --rm -v "$(pwd)/examples/demo-repo:/work" <image> analyze /work --format json > stdout.json 2> stderr.log`
+   - Verification: `jq . stdout.json` must succeed, `wc -l stderr.log` must be > 0
+3. **Determinism**: Two runs must produce identical JSON output
+   - Command: Run analyze twice, compare JSON outputs
+   - Verification: `diff output1.json output2.json` must show no differences
+4. **Read-Only Filesystem**: Container must work with `--read-only` flag
+   - Command: `docker run --rm --read-only -v "$(pwd)/examples/demo-repo:/work:ro" <image> analyze /work --format json`
+   - Verification: Exit code 0, valid JSON output
+
 ## What Is Not Required
 
 These are explicitly not required for verification:
 
-- **Docker Runtime**: Docker daemon availability is not required
+- **Docker Runtime**: Docker daemon availability is not required (but recommended for production deployments)
 - **PyPI Publication**: PyPI publishing is not required for verification
 - **External Repositories**: Analysis of external repos is optional
 - **Performance Benchmarks**: Specific performance numbers are not guaranteed

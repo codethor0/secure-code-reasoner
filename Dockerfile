@@ -17,6 +17,15 @@ COPY src/ ./src/
 # Install package
 RUN pip install --no-cache-dir -e .
 
+# Create non-root user
+RUN addgroup --system scr && adduser --system --ingroup scr scr
+
+# Set ownership of application directory
+RUN chown -R scr:scr /app
+
+# Switch to non-root user
+USER scr
+
 # Set entrypoint
 ENTRYPOINT ["scr"]
 
