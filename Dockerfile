@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim@sha256:158caf0e080e2cd74ef2879ed3c4e697792ee65251c8208b7afb56683c32ea6c
 
 LABEL maintainer="codethor0"
 LABEL description="Secure Code Reasoner - A research-oriented toolkit for analyzing, fingerprinting, and reviewing code repositories"
