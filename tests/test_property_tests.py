@@ -34,8 +34,9 @@ class TestDeterminismProperties:
         fp2 = Fingerprinter(repo_dir)
         fingerprint2 = fp2.fingerprint()
 
-        assert fingerprint1.status == "COMPLETE"
-        assert fingerprint2.status == "COMPLETE"
+        # Status may be COMPLETE or COMPLETE_WITH_SKIPS depending on skipped files
+        assert fingerprint1.status in ("COMPLETE", "COMPLETE_WITH_SKIPS", "COMPLETE_NO_SKIPS")
+        assert fingerprint2.status in ("COMPLETE", "COMPLETE_WITH_SKIPS", "COMPLETE_NO_SKIPS")
         assert fingerprint1.fingerprint_hash == fingerprint2.fingerprint_hash
 
 
@@ -78,7 +79,7 @@ class TestSchemaInvariantProperties:
     """Property S1-S4: Schema Invariants"""
 
     def test_status_enum_constraint(self, tmp_path: Path) -> None:
-        """Property: fingerprint_status must be COMPLETE, PARTIAL, or INVALID."""
+        """Property: fingerprint_status must be valid status enum value."""
         repo_dir = tmp_path / "test_repo"
         repo_dir.mkdir()
         (repo_dir / "test.py").write_text("def hello(): pass\n")
@@ -86,8 +87,10 @@ class TestSchemaInvariantProperties:
         fp = Fingerprinter(repo_dir)
         fingerprint = fp.fingerprint()
 
-        assert fingerprint.status in ("COMPLETE", "PARTIAL", "INVALID")
-        assert fingerprint.to_dict()["fingerprint_status"] in ("COMPLETE", "PARTIAL", "INVALID")
+        # Valid statuses: COMPLETE, COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, INVALID
+        valid_statuses = ("COMPLETE", "COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS", "PARTIAL", "INVALID")
+        assert fingerprint.status in valid_statuses
+        assert fingerprint.to_dict()["fingerprint_status"] in valid_statuses
 
     def test_status_in_json_output(self, tmp_path: Path) -> None:
         """Property: fingerprint_status must be present in JSON output."""
@@ -100,7 +103,9 @@ class TestSchemaInvariantProperties:
         output = fingerprint.to_dict()
 
         assert "fingerprint_status" in output
-        assert output["fingerprint_status"] in ("COMPLETE", "PARTIAL", "INVALID")
+        # Valid statuses: COMPLETE, COMPLETE_NO_SKIPS, COMPLETE_WITH_SKIPS, PARTIAL, INVALID
+        valid_statuses = ("COMPLETE", "COMPLETE_NO_SKIPS", "COMPLETE_WITH_SKIPS", "PARTIAL", "INVALID")
+        assert output["fingerprint_status"] in valid_statuses
 
     def test_proof_obligations_present(self, tmp_path: Path) -> None:
         """Property: proof_obligations must be present in output."""
@@ -129,7 +134,7 @@ class TestDefaultValueProperties:
         fp = Fingerprinter(repo_dir)
         fingerprint = fp.fingerprint()
 
-        # If no failures, status should be COMPLETE (default)
-        # This tests that default is COMPLETE, not PARTIAL or INVALID
-        assert fingerprint.status == "COMPLETE" or fingerprint.status == "PARTIAL"
-        # If COMPLETE, it's the default. If PARTIAL, it's explicit due to failures.
+        # If no failures, status should be COMPLETE or COMPLETE_WITH_SKIPS (if skips exist)
+        # This tests that default is not PARTIAL or INVALID
+        assert fingerprint.status in ("COMPLETE", "COMPLETE_WITH_SKIPS", "PARTIAL")
+        # COMPLETE/COMPLETE_WITH_SKIPS = success, PARTIAL = explicit failures

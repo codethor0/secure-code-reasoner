@@ -4,7 +4,6 @@ import ast
 import hashlib
 import logging
 from pathlib import Path
-from typing import Any
 
 from secure_code_reasoner.exceptions import FingerprintingError
 from secure_code_reasoner.fingerprinting.models import (

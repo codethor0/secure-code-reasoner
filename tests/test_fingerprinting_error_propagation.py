@@ -2,9 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
-from secure_code_reasoner.exceptions import FingerprintingError
 from secure_code_reasoner.fingerprinting import Fingerprinter
 
 
@@ -39,7 +36,8 @@ class TestFingerprintingErrorPropagation:
         fingerprint = fingerprinter.fingerprint()
 
         # Normal case: should work
-        assert fingerprint.status == "COMPLETE"
+        # Status may be COMPLETE or COMPLETE_WITH_SKIPS (if .git, __pycache__ exist)
+        assert fingerprint.status in ("COMPLETE", "COMPLETE_WITH_SKIPS")
 
         # The actual propagation test would require triggering a FingerprintingError
         # which is difficult without mocking internal methods. However, the code
@@ -60,7 +58,9 @@ class TestFingerprintingErrorPropagation:
 
             # File I/O errors should set PARTIAL status, not raise exception
             assert fingerprint.status == "PARTIAL"
-            assert "unreadable.py" in fingerprint.status_metadata.get("failed_files", [])
+            failed_files = fingerprint.status_metadata.get("failed_files", [])
+            # Failed files use full paths (as_posix()), check if filename is in any path
+            assert any("unreadable.py" in path for path in failed_files)
         finally:
             # Restore permissions for cleanup
             (repo / "unreadable.py").chmod(0o644)
@@ -88,16 +88,9 @@ class TestFingerprintingErrorPropagation:
         # Check that the specific handlers come before any generic handler
         lines = source.split("\n")
         fingerprint_error_handler_found = False
-        generic_exception_handler_found = False
 
-        for i, line in enumerate(lines):
+        for line in lines:
             if "except FingerprintingError:" in line:
                 fingerprint_error_handler_found = True
-            if "except Exception" in line and "FingerprintingError" not in line:
-                # Check if this is in the file processing loop
-                if i > 0 and "file_path" in lines[i - 1]:
-                    generic_exception_handler_found = True
 
         assert fingerprint_error_handler_found, "FingerprintingError handler must exist"
-        # Generic Exception handler should NOT exist in file processing loop
-        # (it may exist elsewhere for other purposes)
