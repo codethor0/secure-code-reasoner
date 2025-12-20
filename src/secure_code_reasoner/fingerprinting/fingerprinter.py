@@ -339,7 +339,7 @@ class Fingerprinter:
         if failed_files:
             fingerprint_status = "PARTIAL"
             status_metadata = {
-                "failed_files": failed_files,
+                "failed_files": sorted(failed_files),
                 "failed_file_count": len(failed_files),
             }
         else:
