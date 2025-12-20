@@ -66,9 +66,10 @@ class TraceEvent:
     def _make_value_hashable(self, value: Any) -> Any:
         """Recursively convert a value to a hashable type.
         
-        Handles nested dicts and lists deterministically:
+        Handles nested dicts, lists, and sets deterministically:
         - Dicts: sorted by key for order-independent hashing
         - Lists: converted to tuple (preserves order for determinism)
+        - Sets: converted to sorted tuple (order-independent hashing)
         """
         try:
             hash(value)
@@ -78,6 +79,8 @@ class TraceEvent:
                 return tuple(sorted((k, self._make_value_hashable(v)) for k, v in value.items()))
             elif isinstance(value, list):
                 return tuple(self._make_value_hashable(item) for item in value)
+            elif isinstance(value, set):
+                return tuple(sorted(self._make_value_hashable(item) for item in value))
             else:
                 return str(value)
 
