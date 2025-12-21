@@ -12,6 +12,8 @@
 
 A research-oriented, developer-focused toolkit for analyzing, fingerprinting, and reviewing code repositories via semantic and execution-based analysis.
 
+**Important**: This repository contains only the CLI engine. It does not start a server and cannot be accessed via a browser. The Web GUI exists as a separate repository (`secure-code-reasoner-web`).
+
 ## Distribution Status
 
 Secure Code Reasoner is currently distributed via source installation and Docker images.

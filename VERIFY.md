@@ -88,6 +88,21 @@ These are explicitly not required for verification:
 - **External Repositories**: Analysis of external repos is optional
 - **Performance Benchmarks**: Specific performance numbers are not guaranteed
 
+## Non-Goals
+
+These are explicitly out of scope for this repository:
+
+- **HTTP Server**: No web server exists. The application does not listen on any port.
+- **Web UI**: No web interface exists. The application cannot be accessed via a browser.
+- **Long-Running Daemon**: The application executes CLI commands and exits. It does not run as a persistent service.
+
+If an agent or user claims the application can be "opened" or accessed via HTTP, verification must prove:
+1. A listening port exists (`docker port <container>` shows exposed ports)
+2. A long-running process exists (`docker ps` shows running container)
+3. An HTTP response exists (`curl http://localhost:<port>` succeeds)
+
+Without all three proofs, the claim is invalid by definition.
+
 ## PyPI Publishing Prerequisites
 
 PyPI publishing is prepared but NOT ENABLED. Before any PyPI publication can occur, the following MUST be satisfied:
